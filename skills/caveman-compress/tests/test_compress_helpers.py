@@ -213,3 +213,85 @@ def test_compress_file_identical_output_aborts(
     assert p.read_text() == original_on_disk
     backup_dir = backup_dir_for(p.resolve())
     assert not (backup_dir / (p.stem + ".original.md")).exists()
+
+
+# ---------- compress_file: post-call_claude branches ----------
+
+
+@pytest.mark.parametrize("response", ["", "   \n\t", None])
+def test_compress_file_empty_model_response_aborts(
+    tmp_path, monkeypatch, isolated_backup_dir, response
+):
+    body = "# Notes\n\nReal prose that could be compressed.\n"
+    p = tmp_path / "notes.md"
+    p.write_text(body)
+    original_on_disk = p.read_text()
+
+    # Model returns empty / whitespace / None -> abort before any backup.
+    monkeypatch.setattr(compress, "call_claude", lambda prompt: response)
+
+    assert compress_file(p) is False
+    # Source untouched, no backup created.
+    assert p.read_text() == original_on_disk
+    backup_dir = backup_dir_for(p.resolve())
+    assert not (backup_dir / (p.stem + ".original.md")).exists()
+
+
+def test_compress_file_backup_readback_mismatch_aborts(
+    tmp_path, monkeypatch, isolated_backup_dir
+):
+    body = "# Notes\n\nReal prose that could be compressed.\n"
+    p = tmp_path / "notes.md"
+    p.write_text(body)
+    original_on_disk = p.read_text()
+
+    # Model returns a genuinely different (valid-shaped) compression.
+    monkeypatch.setattr(compress, "call_claude", lambda prompt: "# Notes\n\nProse.\n")
+
+    backup_path = backup_dir_for(p.resolve()) / (p.stem + ".original.md")
+
+    # Simulate the filesystem dropping bytes on the backup readback: any read of
+    # the backup file returns corrupted content, so the readback != original
+    # guard fires. Reads of other files pass through unchanged.
+    real_read_text = Path.read_text
+
+    def corrupt_backup_read(self, *args, **kwargs):
+        if self == backup_path:
+            return "CORRUPTED"
+        return real_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(compress.Path, "read_text", corrupt_backup_read)
+
+    assert compress_file(p) is False
+    # Source must be untouched and the bad backup unlinked.
+    assert real_read_text(p) == original_on_disk
+    assert not backup_path.exists()
+
+
+def test_compress_file_validation_failure_restores_original(
+    tmp_path, monkeypatch, isolated_backup_dir
+):
+    # Original carries a URL the "model" keeps dropping, so validation fails on
+    # every attempt and the original must be restored + backup removed.
+    body = "# Notes\n\nVisit https://example.com/keep for details.\n"
+    p = tmp_path / "notes.md"
+    p.write_text(body)
+    original_on_disk = p.read_text()
+
+    calls = []
+
+    def lossy_model(prompt):
+        calls.append(prompt)
+        # Different from input (so not the identical-abort) but drops the URL,
+        # which validate_urls flags as an error -> retry -> still failing.
+        return "# Notes\n\nVisit for details (compressed).\n"
+
+    monkeypatch.setattr(compress, "call_claude", lossy_model)
+
+    assert compress_file(p) is False
+    # Original restored verbatim; backup removed after the failed retries.
+    assert p.read_text() == original_on_disk
+    backup_path = backup_dir_for(p.resolve()) / (p.stem + ".original.md")
+    assert not backup_path.exists()
+    # The retry loop ran: one initial compress + at least one fix attempt.
+    assert len(calls) >= 2

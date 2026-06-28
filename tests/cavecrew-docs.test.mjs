@@ -24,6 +24,9 @@ const forbiddenSubstrings = [
 	"hooks/",
 	"test_symlink_flag.js",
 	"feature-dev:",
+	// `code-architect` is a Claude-Code subagent preset. Catch it directly so a
+	// bare reference (without the `feature-dev:` namespace) is still flagged.
+	"code-architect",
 ];
 
 for (const file of cavecrewFiles) {

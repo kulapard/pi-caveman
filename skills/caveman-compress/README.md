@@ -10,19 +10,19 @@
 
 ---
 
-A Claude Code skill that compresses your project memory files (`CLAUDE.md`, todos, preferences) into caveman format — so every session loads fewer tokens automatically.
+A Pi skill that compresses your project memory files (`AGENTS.md`, `CLAUDE.md`, todos, preferences) into caveman format — so every session loads fewer tokens automatically.
 
-Claude read `CLAUDE.md` on every session start. If file big, cost big. Caveman make file small. Cost go down forever.
+The agent reads its memory file (`AGENTS.md` / `CLAUDE.md`) on every session start. If file big, cost big. Caveman make file small. Cost go down forever.
 
 ## What It Do
 
 ```
-/caveman-compress CLAUDE.md
+/caveman-compress AGENTS.md
 ```
 
 ```
-CLAUDE.md          ← compressed (Claude reads this — fewer tokens every session)
-CLAUDE.original.md ← human-readable backup (you edit this)
+AGENTS.md          ← compressed (the agent reads this — fewer tokens every session)
+AGENTS.original.md ← human-readable backup (you edit this)
 ```
 
 Original never lost. You can read and edit `.original.md`. Run skill again to re-compress after edits.
@@ -55,7 +55,7 @@ All validations passed ✅ — headings, code blocks, URLs, file paths preserved
 </td>
 <td width="50%">
 
-### <img src="../../docs/assets/dancing-rock.svg" width="20" height="20" alt="rock"/> Caveman (285 tokens)
+### <img src="https://em-content.zobj.net/source/apple/391/rock_1faa8.png" width="20" height="20" alt="rock"/> Caveman (285 tokens)
 
 > "Prefer TypeScript strict mode always. No `any` unless unavoidable — comment why if used. Proper types catch bugs early."
 
@@ -63,7 +63,7 @@ All validations passed ✅ — headings, code blocks, URLs, file paths preserved
 </tr>
 </table>
 
-**Same instructions. 60% fewer tokens. Every. Single. Session.**
+**Same instructions. ~60% fewer tokens in this example (46% average across the files above). Every. Single. Session.**
 
 ## Security
 
@@ -71,15 +71,17 @@ All validations passed ✅ — headings, code blocks, URLs, file paths preserved
 
 ## Install
 
-Compress is built in with the `caveman` plugin. Install `caveman` once, then use `/caveman-compress`.
+This skill ships inside the pi-caveman package. Load the package (see the
+[root README](../../README.md) for the `pi -e … --skill …` / `pi install`
+mechanism), then use `/caveman-compress` in a Pi session.
 
-If you need local files, the compress skill lives at:
+The compress toolkit lives at `skills/caveman-compress/` within the package; the
+skill instructions run the Python CLI under `scripts/`.
 
-```bash
-caveman-compress/
-```
-
-**Requires:** Python 3.10+
+**Requires:** Python 3.10+. Compression calls a model (the Anthropic SDK if
+`ANTHROPIC_API_KEY` is set, otherwise the `claude --print` CLI), so one of those
+must be available — see [Security](#security) and the root README's
+"Compression vs. upstream MCP shrink" note for why this step is model-bound.
 
 ## Usage
 
@@ -89,6 +91,7 @@ caveman-compress/
 
 Examples:
 ```
+/caveman-compress AGENTS.md
 /caveman-compress CLAUDE.md
 /caveman-compress docs/preferences.md
 /caveman-compress todos.md
@@ -106,22 +109,22 @@ Examples:
 ## How It Work
 
 ```
-/caveman-compress CLAUDE.md
+/caveman-compress AGENTS.md
         ↓
 detect file type        (no tokens)
         ↓
-Claude compresses       (tokens — one call)
+toolkit calls a model to compress   (tokens — one call)
         ↓
 validate output         (no tokens)
   checks: headings, code blocks, URLs, file paths, bullets
         ↓
-if errors: Claude fixes cherry-picked issues only   (tokens — targeted fix)
+if errors: model fixes cherry-picked issues only    (tokens — targeted fix)
   does NOT recompress — only patches broken parts
         ↓
 retry up to 2 times
         ↓
-write compressed → CLAUDE.md
-write original   → CLAUDE.original.md
+write compressed → AGENTS.md
+write original   → AGENTS.original.md
 ```
 
 Only two things use tokens: initial compression + targeted fix if validation fails. Everything else is local Python.
@@ -142,7 +145,7 @@ Caveman compress natural language. It never touch:
 
 ## Why This Matter
 
-`CLAUDE.md` loads on **every session start**. A 1000-token project memory file costs tokens every single time you open a project. Over 100 sessions that's 100,000 tokens of overhead — just for context you already wrote.
+A memory file (`AGENTS.md` / `CLAUDE.md`) loads on **every session start**. A 1000-token project memory file costs tokens every single time you open a project. Over 100 sessions that's 100,000 tokens of overhead — just for context you already wrote.
 
 Caveman cut that by ~46% on average. Same instructions. Same accuracy. Less waste.
 
@@ -157,7 +160,7 @@ Caveman cut that by ~46% on average. Same instructions. Same accuracy. Less wast
 
 ## Part of Caveman
 
-This skill is part of the [caveman](https://github.com/JuliusBrussee/caveman) toolkit — making Claude use fewer tokens without losing accuracy.
+This skill is part of the [caveman](https://github.com/JuliusBrussee/caveman) toolkit — making the agent use fewer tokens without losing accuracy. pi-caveman is the [Pi](https://github.com/earendil-works/pi-coding-agent) port.
 
-- **caveman** — make Claude *speak* like caveman (cuts response tokens ~65%)
-- **caveman-compress** — make Claude *read* less (cuts context tokens ~46%)
+- **caveman** — make the agent *speak* like caveman (cuts response tokens ~65%)
+- **caveman-compress** — make the agent *read* less (cuts context tokens ~46%)

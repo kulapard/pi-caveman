@@ -17,6 +17,33 @@ SKIP_EXTENSIONS = {
     ".dockerfile", ".makefile", ".csv", ".ini", ".cfg",
 }
 
+# The subset of SKIP_EXTENSIONS that is configuration (not source code). Used to
+# decide whether a skipped file reports as "config" vs "code".
+CONFIG_EXTENSIONS = {
+    ".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".env",
+}
+
+# Real-world extensionless config/build filenames. These have an empty
+# `Path.suffix`, so the SKIP_EXTENSIONS check never matches them and they would
+# otherwise be content-sniffed as natural language and offered up for
+# compression to a third-party API. Map the lowercased full filename to its
+# classification so a bare `Dockerfile`/`Makefile`/`.gitignore` is handled like
+# its dotted-extension cousins would be.
+SKIP_FILENAMES = {
+    "dockerfile": "code",
+    "makefile": "code",
+    "gnumakefile": "code",
+    ".gitignore": "config",
+    ".gitattributes": "config",
+    ".dockerignore": "config",
+    ".editorconfig": "config",
+    ".env": "config",
+    ".npmrc": "config",
+    ".prettierrc": "config",
+    ".eslintrc": "config",
+    ".babelrc": "config",
+}
+
 # Patterns that indicate a line is code
 CODE_PATTERNS = [
     re.compile(r"^\s*(import |from .+ import |require\(|const |let |var )"),
@@ -71,18 +98,20 @@ def detect_file_type(filepath: Path) -> str:
     if ext in COMPRESSIBLE_EXTENSIONS:
         return "natural_language"
     if ext in SKIP_EXTENSIONS:
-        return "code" if ext not in {".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".env"} else "config"
+        return "config" if ext in CONFIG_EXTENSIONS else "code"
 
     # Extensionless files (like CLAUDE.md, TODO) — check content.
     if not ext:
-        # Leading-dot config/skip files (e.g. ".env") have an empty suffix, so
-        # the SKIP_EXTENSIONS check above never matched them and they would be
-        # content-sniffed as natural language. Classify them by full filename
-        # first so a bare ".env" is treated as config like ".env.local" would
-        # be — and never offered up for compression to a third-party API.
+        # Leading-dot / build files (".env", "Dockerfile", "Makefile",
+        # ".gitignore") have an empty suffix, so the SKIP_EXTENSIONS check above
+        # never matched them and they would be content-sniffed as natural
+        # language. Classify them by full filename first so they are never
+        # offered up for compression to a third-party API.
         name = filepath.name.lower()
+        if name in SKIP_FILENAMES:
+            return SKIP_FILENAMES[name]
         if name in SKIP_EXTENSIONS:
-            return "code" if name not in {".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".env"} else "config"
+            return "config" if name in CONFIG_EXTENSIONS else "code"
 
         try:
             text = filepath.read_text(errors="ignore")

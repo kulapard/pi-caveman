@@ -27,7 +27,7 @@
     "pretest": "npm run typecheck",
     "test": "node --experimental-strip-types --test tests/**/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "test:py": "pytest skills/caveman-compress"
+    "test:py": ".venv/bin/pytest skills/caveman-compress"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^0.80.2",

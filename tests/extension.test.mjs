@@ -318,6 +318,211 @@ test("/caveman-compress: dispatches the skill message for a valid target", () =>
 	assert.match(fake.userMessages[0], /caveman-compress docs\/notes\.md/);
 });
 
+test("/caveman-help: sends the HELP_TEXT card with customType caveman-help", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const help = fake.commands.get("caveman-help");
+	help.handler();
+
+	assert.equal(fake.messages.length, 1);
+	assert.equal(fake.messages[0].customType, "caveman-help");
+	assert.equal(fake.messages[0].display, true);
+	assert.match(fake.messages[0].content, /Caveman for Pi/);
+	assert.match(fake.messages[0].content, /\/caveman-help/);
+});
+
+test("/caveman-commit: dispatches /skill:caveman-commit with the given notes", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const commit = fake.commands.get("caveman-commit");
+	commit.handler("only the auth module");
+
+	assert.equal(fake.userMessages.length, 1);
+	assert.match(
+		fake.userMessages[0],
+		/^\/skill:caveman-commit only the auth module$/,
+	);
+});
+
+test("/caveman-commit: falls back to the default task on an empty arg", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const commit = fake.commands.get("caveman-commit");
+	commit.handler("");
+
+	assert.equal(fake.userMessages.length, 1);
+	assert.match(fake.userMessages[0], /^\/skill:caveman-commit /);
+	assert.match(fake.userMessages[0], /Generate a commit message/);
+});
+
+test("/caveman-review: dispatches /skill:caveman-review with the given scope", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const review = fake.commands.get("caveman-review");
+	review.handler("the diff in src/");
+
+	assert.equal(fake.userMessages.length, 1);
+	assert.match(fake.userMessages[0], /^\/skill:caveman-review the diff in src\/$/);
+});
+
+test("/caveman-review: falls back to the default task on an empty arg", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const review = fake.commands.get("caveman-review");
+	review.handler("");
+
+	assert.equal(fake.userMessages.length, 1);
+	assert.match(fake.userMessages[0], /^\/skill:caveman-review /);
+	assert.match(fake.userMessages[0], /Review current repository changes/);
+});
+
+test("/caveman-stats: dispatches /skill:caveman-stats with the given arg", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const stats = fake.commands.get("caveman-stats");
+	stats.handler("last 3 turns");
+
+	assert.equal(fake.userMessages.length, 1);
+	assert.match(fake.userMessages[0], /^\/skill:caveman-stats last 3 turns$/);
+});
+
+test("/caveman-stats: falls back to the default prompt on an empty arg", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const stats = fake.commands.get("caveman-stats");
+	stats.handler("");
+
+	assert.equal(fake.userMessages.length, 1);
+	assert.match(fake.userMessages[0], /^\/skill:caveman-stats /);
+	assert.match(fake.userMessages[0], /Show caveman stats if available\./);
+});
+
+// --- getArgumentCompletions for /caveman ---
+
+test("getArgumentCompletions: filters mode list by prefix", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const caveman = fake.commands.get("caveman");
+	const items = caveman.getArgumentCompletions("wen");
+	assert.ok(Array.isArray(items));
+	assert.deepEqual(
+		items.map((i) => i.value),
+		["wenyan", "wenyan-lite", "wenyan-full", "wenyan-ultra"],
+	);
+	// each item carries a matching label
+	for (const item of items) assert.equal(item.label, item.value);
+});
+
+test("getArgumentCompletions: empty prefix returns the full list", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const caveman = fake.commands.get("caveman");
+	const items = caveman.getArgumentCompletions("");
+	assert.equal(items.length, 8); // 6 modes + wenyan alias + off
+	assert.ok(items.some((i) => i.value === "off"));
+	assert.ok(items.some((i) => i.value === "ultra"));
+});
+
+test("getArgumentCompletions: no match returns null (not an empty array)", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const caveman = fake.commands.get("caveman");
+	assert.equal(caveman.getArgumentCompletions("zzz"), null);
+});
+
+// --- statusline clear when switching to off ---
+
+test("statusline: clears (undefined) when /caveman off is issued", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const { ctx, statuses } = makeFakeCtx();
+	const caveman = fake.commands.get("caveman");
+	caveman.handler("ultra", ctx);
+	assert.deepEqual(statuses.at(-1), { key: "caveman", value: "caveman:ultra" });
+
+	caveman.handler("off", ctx);
+	assert.deepEqual(statuses.at(-1), { key: "caveman", value: undefined });
+});
+
+// --- pi.on("input") activation / deactivation handler ---
+
+test("input handler: activation phrase from a user source persists full", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const { ctx } = makeFakeCtx();
+	const input = fake.events.get("input");
+	assert.ok(input, "input handler must be registered");
+
+	const result = input({ text: "please use caveman mode", source: "user" }, ctx);
+	assert.deepEqual(result, { action: "continue" });
+	assert.equal(fake.appended.length, 1);
+	assert.equal(fake.appended[0].data.mode, "full");
+});
+
+test("input handler: deactivation phrase persists off", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const { ctx } = makeFakeCtx();
+	const input = fake.events.get("input");
+
+	// First activate, then deactivate.
+	input({ text: "use caveman", source: "user" }, ctx);
+	assert.equal(fake.appended.at(-1).data.mode, "full");
+
+	input({ text: "switch to normal mode now", source: "user" }, ctx);
+	assert.equal(fake.appended.at(-1).data.mode, "off");
+});
+
+test("input handler: source 'extension' is ignored (self-echo guard)", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const { ctx } = makeFakeCtx();
+	const input = fake.events.get("input");
+
+	const result = input(
+		{ text: "please use caveman mode", source: "extension" },
+		ctx,
+	);
+	assert.deepEqual(result, { action: "continue" });
+	assert.equal(fake.appended.length, 0, "self-echo must not persist a mode");
+});
+
+test("input handler: activation while already in a non-off mode does not overwrite", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const { ctx } = makeFakeCtx();
+	const caveman = fake.commands.get("caveman");
+	const input = fake.events.get("input");
+
+	// Already in ultra via the command.
+	caveman.handler("ultra", ctx);
+	assert.equal(fake.appended.length, 1);
+	assert.equal(fake.appended[0].data.mode, "ultra");
+
+	// An activation phrase must NOT downgrade ultra to full.
+	input({ text: "use caveman", source: "user" }, ctx);
+	assert.equal(fake.appended.length, 1, "must not persist a second entry");
+
+	const beforeStart = fake.events.get("before_agent_start");
+	const r = beforeStart({ systemPrompt: "SYS" });
+	assert.ok(r.systemPrompt.includes("Intensity: ultra."), "mode stays ultra");
+});
+
+test("input handler: deactivation while already off does not persist a redundant entry", () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const { ctx } = makeFakeCtx();
+	const input = fake.events.get("input");
+
+	// Default mode is off; a deactivation phrase must be a no-op.
+	input({ text: "stop caveman", source: "user" }, ctx);
+	assert.equal(
+		fake.appended.length,
+		0,
+		"deactivation while off must not persist a redundant entry",
+	);
+});
+
 // --- type-only SDK import invariant ---
 
 test("SDK import in caveman.ts is type-only (erasable by strip-types)", () => {

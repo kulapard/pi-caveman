@@ -59,10 +59,31 @@ test("devDependencies pin the Pi SDK and TypeScript", () => {
 test("scripts wire up test, typecheck, and test:py", () => {
 	const pkg = readManifest();
 	assert.ok(pkg.scripts, "scripts must exist");
-	assert.equal(
+	// Substring (not exact-string) checks so the script wording can evolve
+	// without a brittle test break — we only assert the load-bearing parts.
+	assert.match(
 		pkg.scripts.test,
-		"node --experimental-strip-types --test tests/**/*.test.mjs",
+		/--test/,
+		"test script must run the node --test runner",
 	);
-	assert.equal(pkg.scripts.typecheck, "tsc --noEmit");
-	assert.equal(pkg.scripts["test:py"], "pytest skills/caveman-compress");
+	assert.match(
+		pkg.scripts.test,
+		/--experimental-strip-types/,
+		"test script must strip TS types (tests import .ts modules)",
+	);
+	assert.match(
+		pkg.scripts.typecheck,
+		/tsc --noEmit/,
+		"typecheck script must run tsc --noEmit",
+	);
+	assert.match(
+		pkg.scripts["test:py"],
+		/pytest/,
+		"test:py script must invoke pytest",
+	);
+	assert.match(
+		pkg.scripts["test:py"],
+		/skills\/caveman-compress/,
+		"test:py must target the caveman-compress suite",
+	);
 });

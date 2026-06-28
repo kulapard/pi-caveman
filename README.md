@@ -48,7 +48,12 @@ persistent install over a per-session `pi -e`.
 ```bash
 npm install            # fetch the Pi SDK + TypeScript dev deps
 npm test               # typecheck + extension/manifest/docs unit tests
-npm run test:py        # Python tests for the caveman-compress toolkit
+
+# Python tests for the caveman-compress toolkit need pytest in a local venv
+# (pytest is not on PATH on a fresh checkout):
+python3 -m venv .venv
+.venv/bin/pip install pytest
+npm run test:py        # runs: .venv/bin/pytest skills/caveman-compress
 ```
 
 ## Modes
