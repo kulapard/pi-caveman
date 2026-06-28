@@ -194,9 +194,9 @@
 - [x] confirm each decision task (6, 7, 8) left the docs and Acceptance Criteria internally consistent — done: T6 (stats) — README/skill/audit all describe stats as on-demand model estimate + `caveman:<mode>` statusline (no hooks/badge/tracking); T7 (MCP shrink) — README §"Compression vs. upstream MCP shrink" = out-of-scope v0.1.0, compress is the Claude-bound Pi equivalent, matches audit §12 and Acceptance Criteria line 47; T8 (cavecrew) — marked optional/out-of-scope, phantom refs stripped, matches audit §6. No contradictions across README/skill docs/audit.md/plan
 
 ### Task 11: Finalize documentation
-- [ ] ensure `docs/audit.md` reflects final decisions; update skill READMEs touched by Tasks 6–8
-- [ ] note any Pi-specific patterns worth recording for future work
-- [ ] move this plan to `docs/plans/completed/` (create dir if needed)
+- [x] ensure `docs/audit.md` reflects final decisions; update skill READMEs touched by Tasks 6–8 — done: added `docs/audit.md` §13 (closing) recording plan-executed-to-completion, the four key decisions (stats → on-demand model estimate + `caveman:<mode>` statusline; MCP shrink out of scope v0.1.0; cavecrew optional — Pi has no subagent mechanism; caveman-help config phantom removed), and final test counts (50 JS, 58 Python, typecheck exit 0). Verified `skills/caveman-stats/README.md` and `skills/cavecrew/README.md` read coherently with their SKILL.md and the root README — already consistent (no wholesale rewrite; no edits needed)
+- [x] note any Pi-specific patterns worth recording for future work — done: recorded in `docs/audit.md` §13 ("Pi-specific patterns worth recording"): manifest resource types (no `agents`), extension paths resolved relative to package dir, the `import type` test-friendliness invariant + `caveman-core.ts` extraction, session-scoped state (not cross-session files), statusline is an indicator not a metrics surface, and the non-interactive `pi -e … --print` load check
+- [x] move this plan to `docs/plans/completed/` (create dir if needed) — [x] (harness moves the plan after all phases — not moved here)
 
 ## Post-Completion
 *Items requiring manual intervention or external systems — no checkboxes, informational only*

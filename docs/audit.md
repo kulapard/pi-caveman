@@ -310,6 +310,87 @@ text Task 9's root `README.md` must carry — see below.)
   middleware is out of scope and that `/caveman-compress` (Claude-bound, invoked
   via a Pi skill/command) is pi-caveman's equivalent. The root README does not
   exist yet (created in Task 9), so this text is recorded here as the canonical
-  source for Task 9 to copy.
+  source for Task 9 to copy. **Carried over** — root `README.md`
+  §"Compression vs. upstream MCP shrink" now states this position.
 - **No code, no tests** for this task (decision deliverable). No
   `extensions/mcp-shrink.*` created.
+
+---
+
+## 13. Closing — plan executed to completion (Task 11)
+
+The plan `docs/plans/20260628-pi-caveman.md` ran to completion. Tasks 1–10 are
+all `[x]`; Task 11 (this finalization) wraps up the documentation.
+
+### Final state
+- **Packaging**: `package.json` declares `type: "module"`,
+  `keywords ⊇ ["pi-package"]`, `pi: { extensions: ["./extensions/caveman.ts"],
+  skills: ["./skills"] }` (extension path confirmed honored at its current
+  location — no `.pi/extensions/` move). `tsconfig.json` (nodenext, strict,
+  noEmit) typechecks the extension against the real SDK.
+- **Tests**: extension/manifest/readme/stats-docs/cavecrew-docs unit suites
+  (`node --test`, strip-types) + a `pretest` typecheck gate; Python deterministic
+  tests for the `caveman-compress` toolkit (`.venv/bin/pytest`).
+- **Docs**: root `README.md` (install via `pi -e` / package manifest, six modes,
+  commands, natural-language activation, session-scoped reset, `caveman:<mode>`
+  statusline, MCP-shrink position, attribution + MIT). Skill SKILL.md/README
+  pairs reconciled to reality; no phantom Claude-Code references remain.
+- **Git**: repo under git on branch `pi-caveman`.
+
+### Key decisions (final)
+1. **Stats reconciled** (Task 6): no token meter exists — Pi does not expose
+   per-turn usage to the extension. `/caveman-stats` is an **on-demand,
+   model-driven estimate**; the statusline is a **`caveman:<mode>` mode
+   indicator** (not a savings badge). No hooks/session-log/`⛏` badge — all
+   phantom references removed.
+2. **MCP `caveman-shrink` out of scope for v0.1.0** (Task 7): the Python
+   `caveman-compress` toolkit (invoked via `/caveman-compress`) is the Pi
+   equivalent. It is **itself Claude-bound** (`call_claude`), so "Pi-native"
+   means *invoked via a Pi skill/command*, not *model-independent*. No MCP tool
+   built (it would only duplicate compress behind a different transport).
+3. **cavecrew optional / out-of-scope** (Task 8): Pi 0.80.2 has **no subagent /
+   `agents/` mechanism**. The three `agents/cavecrew-*.md` files are kept as
+   reference personas (design notes / future work), with Claude-Code
+   frontmatter and the phantom `hooks/*.js` + `test_symlink_flag.js` example
+   stripped. `agents/` is **not** added to the manifest.
+4. **caveman-help config phantom removed** (Task 10 sweep): the documented
+   `CAVEMAN_DEFAULT_MODE` env var + `~/.config/caveman/config.json` default-mode
+   mechanism is read by no Pi code — the extension always resets to `off` on
+   `session_start`. Both the SKILL.md and README were corrected to "mode lasts
+   the session; no config file or env var".
+
+### Final test counts (verified)
+- **JS**: `npm test` → **50 passing** (manifest 7 + extension 21 + readme 4 +
+  stats-docs 3 + cavecrew-docs 15), preceded by the `pretest` typecheck.
+- **Python**: `.venv/bin/pytest skills/caveman-compress` → **58 passing**.
+- **Typecheck**: `npm run typecheck` (`tsc --noEmit`) exits **0** (clean).
+
+### Pi-specific patterns worth recording (for future Pi packages)
+- **Manifest resource types**: Pi's `ResolvedPaths` understands exactly
+  `extensions`, `skills`, `prompts`, `themes`. There is **no `agents` type** and
+  no `pi.agents` field — Claude-Code-style subagent presets do not port to Pi
+  core. Declare only the resource types Pi actually loads.
+- **Extension paths are resolved relative to the package dir** via
+  `path.resolve(dir, extPath)` against the `package.json` `pi.extensions`
+  entries (manifest checked before any `index.ts`/`index.js` fallback). No
+  forced `.pi/extensions/` convention — declare the real path.
+- **`import type` keeps the extension test-friendly**: importing the SDK as
+  `import type` means `--experimental-strip-types` erases it, so pure-logic and
+  fake-`pi` handler tests need no installed SDK at runtime. If any value import
+  from the SDK is added later, those tests must mock the module. Extracting
+  pure logic into a sibling `caveman-core.ts` (imported by the extension) lets
+  tests import the logic directly without faking the SDK at all.
+- **Session-scoped state**, not cross-session files: state lives in
+  `pi.appendEntry(<key>, …)` and is restored by replaying
+  `ctx.sessionManager.getBranch()` on `session_start` (taking the last matching
+  entry). A new session starts clean by design — there is no global config to
+  auto-enable behavior, and documenting one is a phantom.
+- **Statusline**: `ctx.ui.setStatus(<id>, <text>)` guarded by `ctx.hasUI`;
+  clear it by passing `undefined`. It is a string indicator, not a metrics
+  surface — Pi does not hand per-turn token usage to extensions, so any
+  "savings badge"/usage-meter feature has no host data to read.
+- **Non-interactive load check**: `pi -e <ext>.ts --print "/some-command"`
+  exits 0 to confirm an extension loads and a slash command registers without
+  hanging; the full interactive TUI (banner injection, response style,
+  live statusline) cannot be driven from a non-interactive shell and stays a
+  manual smoke test.
