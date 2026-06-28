@@ -1,0 +1,35 @@
+{
+  "name": "pi-caveman",
+  "version": "0.1.0",
+  "description": "Caveman for Pi: ultra-compressed agent output that preserves technical substance. Six intensity modes, slash commands, natural-language activation, and a session statusline.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "pi-package",
+    "pi",
+    "caveman",
+    "compression",
+    "token-efficiency",
+    "extension"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/caveman.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/**/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:py": "pytest skills/caveman-compress"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.2",
+    "typescript": "^5"
+  }
+}

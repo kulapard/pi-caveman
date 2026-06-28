@@ -88,11 +88,11 @@
 - Create: `/Users/kulapard/projects/pi-caveman/.gitignore`
 - Create: `/Users/kulapard/projects/pi-caveman/tests/manifest.test.mjs`
 
-- [ ] write `tests/manifest.test.mjs` asserting `package.json` has `type: "module"`, `keywords` ⊇ `["pi-package"]`, `pi.skills: ["./skills"]`, `pi.extensions` pointing at the Task-1-confirmed extension path, and the `test`/`typecheck` scripts
-- [ ] run test — verify RED (no `package.json`)
-- [ ] create `package.json` (name/version/MIT/engines/keywords/pi block/devDependencies/scripts) and `.gitignore` (`node_modules`, `__pycache__`, `*.tgz`)
-- [ ] run `npm install` to fetch the SDK + typescript dev deps
-- [ ] run test — verify GREEN before next task
+- [x] write `tests/manifest.test.mjs` asserting `package.json` has `type: "module"`, `keywords` ⊇ `["pi-package"]`, `pi.skills: ["./skills"]`, `pi.extensions` pointing at the Task-1-confirmed extension path, and the `test`/`typecheck` scripts — done (7 assertions; also covers name/version/MIT, engines.node `>=18`, devDependencies pins, and `test:py`)
+- [x] run test — verify RED (no `package.json`) — done: all 7 failed with ENOENT on `package.json`
+- [x] create `package.json` (name/version/MIT/engines/keywords/pi block/devDependencies/scripts) and `.gitignore` (`node_modules`, `__pycache__`, `*.tgz`) — done: created `package.json`; `.gitignore` already existed with `node_modules/`, `__pycache__/`, `*.pyc`, `*.tgz` (kept as-is)
+- [x] run `npm install` to fetch the SDK + typescript dev deps — done: SDK `@earendil-works/pi-coding-agent@0.80.2` + typescript resolved from registry; `package-lock.json` generated (141 packages, 0 vulnerabilities)
+- [x] run test — verify GREEN before next task — done: `npm test` → 7/7 pass
 
 ### Task 3: TypeScript typecheck of the extension
 
