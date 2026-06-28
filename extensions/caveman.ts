@@ -4,6 +4,7 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import {
 	ACTIVATION_RE,
+	COMPLETION_VALUES,
 	DEACTIVATION_RE,
 	modeInstructions,
 	normalizeMode,
@@ -60,16 +61,7 @@ export default function cavemanExtension(pi: ExtensionAPI) {
 		description: "Enable caveman terse mode: lite, full, ultra, wenyan, or off",
 		getArgumentCompletions: (prefix) => {
 			const normalizedPrefix = prefix.trim().toLowerCase();
-			const items = [
-				"lite",
-				"full",
-				"ultra",
-				"wenyan",
-				"wenyan-lite",
-				"wenyan-full",
-				"wenyan-ultra",
-				"off",
-			].flatMap((value) =>
+			const items = COMPLETION_VALUES.flatMap((value) =>
 				value.startsWith(normalizedPrefix) ? [{ value, label: value }] : [],
 			);
 			return items.length > 0 ? items : null;
@@ -141,8 +133,8 @@ export default function cavemanExtension(pi: ExtensionAPI) {
 	});
 
 	pi.on("input", (event, ctx) => {
-		const text = event.text.trim();
 		if (event.source === "extension") return { action: "continue" as const };
+		const text = event.text.trim();
 		if (DEACTIVATION_RE.test(text)) {
 			if (mode !== "off") persistMode("off", ctx);
 			return { action: "continue" as const };

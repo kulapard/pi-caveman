@@ -23,6 +23,21 @@ export const VALID_MODES = new Set<CavemanMode>([
 	"wenyan-ultra",
 ]);
 
+// Values offered as argument completions for /caveman: the six real modes plus
+// the `wenyan` alias (→ wenyan-full via normalizeMode) and `off`. These are what
+// a user may type, which is a superset of VALID_MODES, so it is kept as its own
+// list rather than derived from VALID_MODES.
+export const COMPLETION_VALUES: readonly string[] = [
+	"lite",
+	"full",
+	"ultra",
+	"wenyan",
+	"wenyan-lite",
+	"wenyan-full",
+	"wenyan-ultra",
+	"off",
+];
+
 export function normalizeMode(raw: string | undefined): StoredMode | undefined {
 	const value = (raw ?? "").trim().toLowerCase();
 	if (!value) return "full";

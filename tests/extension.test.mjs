@@ -8,6 +8,7 @@ import {
 	normalizeMode,
 	modeInstructions,
 	VALID_MODES,
+	COMPLETION_VALUES,
 	ACTIVATION_RE,
 	DEACTIVATION_RE,
 } from "../extensions/caveman-core.ts";
@@ -418,7 +419,7 @@ test("getArgumentCompletions: empty prefix returns the full list", () => {
 	cavemanExtension(fake.pi);
 	const caveman = fake.commands.get("caveman");
 	const items = caveman.getArgumentCompletions("");
-	assert.equal(items.length, 8); // 6 modes + wenyan alias + off
+	assert.equal(items.length, COMPLETION_VALUES.length); // 6 modes + wenyan alias + off
 	assert.ok(items.some((i) => i.value === "off"));
 	assert.ok(items.some((i) => i.value === "ultra"));
 });

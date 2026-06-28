@@ -18,17 +18,28 @@ SKIP_EXTENSIONS = {
 }
 
 # The subset of SKIP_EXTENSIONS that is configuration (not source code). Used to
-# decide whether a skipped file reports as "config" vs "code".
+# decide whether a skipped file reports as "config" vs "code". Must stay a subset
+# of SKIP_EXTENSIONS (asserted below) so the two sets cannot silently drift.
 CONFIG_EXTENSIONS = {
     ".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".env",
 }
+assert CONFIG_EXTENSIONS <= SKIP_EXTENSIONS, (
+    "CONFIG_EXTENSIONS must be a subset of SKIP_EXTENSIONS: "
+    f"{CONFIG_EXTENSIONS - SKIP_EXTENSIONS} not in SKIP_EXTENSIONS"
+)
 
-# Real-world extensionless config/build filenames. These have an empty
+# Real-world extensionless config/build filenames whose classification is NOT
+# already covered by the SKIP_EXTENSIONS fallback below. These have an empty
 # `Path.suffix`, so the SKIP_EXTENSIONS check never matches them and they would
 # otherwise be content-sniffed as natural language and offered up for
 # compression to a third-party API. Map the lowercased full filename to its
 # classification so a bare `Dockerfile`/`Makefile`/`.gitignore` is handled like
 # its dotted-extension cousins would be.
+#
+# Names that are themselves SKIP_EXTENSIONS entries (e.g. ".env") are
+# deliberately omitted here: the `name in SKIP_EXTENSIONS` fallback in
+# detect_file_type already classifies them identically, so listing them in both
+# places would be redundant and require hand-syncing.
 SKIP_FILENAMES = {
     "dockerfile": "code",
     "makefile": "code",
@@ -37,7 +48,6 @@ SKIP_FILENAMES = {
     ".gitattributes": "config",
     ".dockerignore": "config",
     ".editorconfig": "config",
-    ".env": "config",
     ".npmrc": "config",
     ".prettierrc": "config",
     ".eslintrc": "config",
@@ -82,7 +92,7 @@ def _is_yaml_content(lines: list[str]) -> bool:
         elif stripped.startswith("- ") and ":" in stripped:
             yaml_indicators += 1
     # If most non-empty lines look like YAML
-    non_empty = sum(1 for l in lines[:30] if l.strip())
+    non_empty = sum(1 for line in lines[:30] if line.strip())
     return non_empty > 0 and yaml_indicators / non_empty > 0.6
 
 
@@ -125,8 +135,8 @@ def detect_file_type(filepath: Path) -> str:
         if _is_yaml_content(lines):
             return "config"
 
-        code_lines = sum(1 for l in lines if l.strip() and _is_code_line(l))
-        non_empty = sum(1 for l in lines if l.strip())
+        code_lines = sum(1 for line in lines if line.strip() and _is_code_line(line))
+        non_empty = sum(1 for line in lines if line.strip())
         if non_empty > 0 and code_lines / non_empty > 0.4:
             return "code"
 
