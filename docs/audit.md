@@ -1,0 +1,241 @@
+# Pi Caveman — Implementation Audit (Task 1)
+
+Discovery deliverable for plan `docs/plans/20260628-pi-caveman.md`. Records the
+actual on-disk state, confirms Pi load mechanics, catalogues every phantom
+Claude-Code reference (with file + line) for Tasks 6 and 8, and gates Tasks 2,
+8, and 9.
+
+Date: 2026-06-28. Auditor: automated discovery pass.
+
+---
+
+## 1. Toolchain & SDK (confirms Task 2 inputs)
+
+| Tool | Version | Notes |
+|------|---------|-------|
+| `pi` CLI | **0.80.2** | shell function → `PI_CODING_AGENT_DIR=~/.pi/agent-base command pi` |
+| node | **v26.3.0** | `--experimental-strip-types` + `node --test` both available |
+| npm | **11.16.0** | |
+| python3 | **3.14.5** | present |
+| **pytest** | **NOT installed** | `python3 -m pytest` → "No module named pytest". Task 5 must install it. |
+
+### SDK: `@earendil-works/pi-coding-agent@0.80.2`
+- **Not in this repo's `node_modules`** (no local install yet). Installed globally at
+  `/Users/kulapard/.local/share/fnm/node-versions/v26.3.0/installation/lib/node_modules/@earendil-works/pi-coding-agent`.
+- **ESM-only**: `package.json` has `"type": "module"` and `"exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } }` — there is **no `require`/CJS entry**. `package.json` must declare `"type": "module"`.
+- Ships `dist/index.d.ts` (typed). Pre-1.0 → pin `^0.80.2` in devDependencies (API churn expected; flagged in Post-Completion).
+- **Extension API surface used by `extensions/caveman.ts` all exists in the SDK types** (`dist/core/extensions/types.d.ts`): `registerCommand`, `appendEntry`, `sendMessage`, `sendUserMessage`, `ctx.ui.setStatus`, `ctx.ui.notify`, `ctx.hasUI`, `ctx.sessionManager` (+ `getBranch`). Event names `before_agent_start`, `session_start`, `input` are all valid (present in `types.d.ts` and `runner.js`).
+- The extension imports `ExtensionAPI`/`ExtensionContext` as **`import type`** (line 1–4 of `caveman.ts`) — erased by `--experimental-strip-types`, so the pure-logic and fake-`pi` handler tests need no installed SDK at runtime. **Invariant for Task 4**: if `caveman.ts` ever adds a *value* import from the SDK, the handler tests must mock the module.
+
+---
+
+## 2. Pi load mechanics — CONFIRMED (gates Tasks 2 & 9)
+
+### How `pi` loads a package's extensions
+From the SDK loader (`dist/core/extensions/loader.js`):
+- `readPiManifest(packageJsonPath)` reads `package.json` and returns its `pi` object if `pkg.pi` is a non-null object.
+- `resolveExtensionEntries(dir)` checks `package.json` **first**: if `manifest.extensions` has entries, each is resolved with `path.resolve(dir, extPath)` and kept if the file exists. Falls back to `index.ts`/`index.js` only if no manifest entries.
+
+**Conclusion**: `pi.extensions: ["./extensions/caveman.ts"]` is honored **at its current path** — Pi resolves it relative to the package dir. **The file does NOT need to move to `.pi/extensions/`.** The plan's fallback (move to `.pi/extensions/`) is unnecessary.
+
+### Manifest resource types Pi actually understands
+`ResolvedPaths` (`dist/core/package-manager.d.ts`) has exactly: **`extensions`, `skills`, `prompts`, `themes`**. There is **NO `agents` resource type** and **no `pi.agents` manifest field**. This is the gating fact for Task 8 (see §6).
+
+So the manifest should declare only `pi: { extensions: [...], skills: ["./skills"] }`. `agents/` is not a Pi-loadable resource directory.
+
+### Concrete non-interactive load test (performed)
+- `node --experimental-strip-types --check extensions/caveman.ts` → **exit 0** (parses clean against strip-types).
+- Live `pi` load, non-interactive:
+  ```
+  PI_CODING_AGENT_DIR=~/.pi/agent-base PI_OFFLINE=1 command pi \
+    -e /Users/kulapard/projects/pi-caveman/extensions/caveman.ts \
+    --offline --no-session --no-tools --print "/caveman-help"
+  ```
+  → **exit 0, no errors.** The extension loaded and the `/caveman-help` slash command was processed without throwing (slash command needs no provider call).
+- ⚠️ The `--verbose` variant **hangs** (it blocks on the interactive TUI). Driving the interactive TUI from a non-interactive shell hangs the session, so the **full interactive smoke test (banner injection, `/caveman ultra` switching response style, statusline `caveman:<mode>`) is deferred to Post-Completion**. Recommended manual command for that smoke test:
+  ```
+  PI_CODING_AGENT_DIR=~/.pi/agent-base command pi -e /Users/kulapard/projects/pi-caveman/extensions/caveman.ts
+  # then in the TUI:  /caveman-help   /caveman ultra   (ask a question)   stop caveman
+  ```
+
+**Verified statically + via clean non-interactive exit; live TUI smoke deferred to Post-Completion.**
+
+### Install path for the README (Task 9)
+- Dev / local: `pi -e /Users/kulapard/projects/pi-caveman` is NOT a directory form for `-e` (`-e` takes a file). The package forms are:
+  - `pi install <source>` (adds to settings; source = local path or git/npm).
+  - Or `pi -e ./extensions/caveman.ts --skill ./skills` for a one-off load.
+- Because the manifest mechanism is honored, the natural install is `pi install /Users/kulapard/projects/pi-caveman` (package dir with `package.json` `pi` block). **No `install.sh` is required beyond documenting `pi install <path>`** — Task 9's `install.sh` is optional and can be skipped.
+
+---
+
+## 3. Extension (`extensions/caveman.ts`, 230 lines) — purpose & state
+
+Default export `cavemanExtension(pi: ExtensionAPI)`. Design (matches plan Overview — **do not rebuild**):
+- **Modes**: `lite | full | ultra | wenyan-lite | wenyan-full | wenyan-ultra` (+ `off`). `VALID_MODES` set.
+- **`normalizeMode(raw)`**: empty→`full`; `off|stop|normal|normal-mode|disable|disabled`→`off`; `wenyan|classical`→`wenyan-full`; valid mode→itself; else→`undefined`.
+- **`modeInstructions(mode)`**: returns `base` (contains the literal `CAVEMAN MODE ACTIVE`) + per-mode line.
+- **Activation/deactivation regexes** (module-private):
+  - `ACTIVATION_RE = /\b(caveman mode|talk like caveman|use caveman|less tokens|fewer tokens|save tokens)\b/i`
+  - `DEACTIVATION_RE = /\b(stop caveman|normal mode|disable caveman)\b/i`
+- **State = session-scoped**: `persistMode` sets local `mode`, calls `pi.appendEntry("caveman-mode", {mode, timestamp})`, then `setStatus`. On `session_start` mode resets to `off`, then replays the branch (`ctx.sessionManager.getBranch()`) restoring the **last** `caveman-mode` custom entry. Resets to `off` each new session **by design** — NOT cross-session files.
+- **Statusline**: `setStatus` guarded by `ctx?.hasUI`; sets `caveman:<mode>` or clears (`undefined`) when off.
+- **Commands**: `/caveman` (with `getArgumentCompletions`), `/caveman-help` (sends `HELP_TEXT`), `/caveman-commit`, `/caveman-review`, `/caveman-compress` (errors if no arg), `/caveman-stats`. The latter four delegate via `pi.sendUserMessage("/skill:<name> ...")`.
+- **`input` handler**: ignores `event.source === "extension"`; `DEACTIVATION_RE` → off; if `mode==="off"` and `ACTIVATION_RE` → `full`.
+- **`before_agent_start`**: returns `undefined` if off; else appends `modeInstructions(mode)` to `event.systemPrompt`.
+
+**Testability gap (Task 4)**: `normalizeMode`, `modeInstructions`, `VALID_MODES`, `ACTIVATION_RE`, `DEACTIVATION_RE`, `HELP_TEXT` are module-private (not exported). Extract to `extensions/caveman-core.ts` and import in `caveman.ts` so tests can import the pure logic directly.
+
+**Bugs found**: none functional. The extension is internally consistent and uses only real SDK APIs.
+
+---
+
+## 4. Skills — purpose, declared vs implemented
+
+7 skills, each `SKILL.md` (frontmatter `name` + trigger-phrase `description`) + `README.md`.
+
+| Skill | Purpose | Declared-but-unimplemented / residue |
+|-------|---------|--------------------------------------|
+| `caveman` | Persistent terse-output mode; 6 intensities + auto-clarity. Pure prompt. | Clean. (`/caveman wenyan` shorthand handled by `normalizeMode` — OK.) |
+| `caveman-commit` | Terse Conventional Commits generator. Pure prompt. | Clean (mentions "Generated with Claude Code" only as a *negative* — "do NOT add"). |
+| `caveman-review` | One-line-per-finding PR review. Pure prompt. | Clean. |
+| `caveman-compress` | Compress prose memory files in place via Python CLI (`python3 -m scripts <file>`), backup `FILE.original.md`. | **Real backend** (see §5). `README.md:13` still calls it "A Claude Code skill" (branding). `README.md:58` links `../../docs/assets/dancing-rock.svg` (asset may not exist — verify). Backend is **Claude-bound** (`call_claude`). |
+| **`caveman-stats`** | Claims real per-session token usage + savings read from session log, injected by a hook. | **Entirely phantom on Pi** — see §7. No tracking exists. Plan Task 6 reconciles. |
+| `caveman-help` | One-shot cheat-sheet of modes/skills/commands. | Declares (`SKILL.md:44–59`) a default-mode config mechanism: env `CAVEMAN_DEFAULT_MODE`, `~/.config/caveman/config.json`, resolution order `env > file > full`. **No Pi code reads these** — the extension always resets to `off` on `session_start`. Doc-only claim; reconcile or drop (relates to Task 6 scope; flag for Task 9 README). Also advertises `/caveman-stats`. |
+| **`cavecrew`** | Decision guide for delegating to 3 caveman subagent presets. | **Depends on a subagent mechanism Pi lacks** — see §6. Phantom presets `Explore`/`Code Reviewer`/`feature-dev:code-architect`. Plan Task 8. |
+
+---
+
+## 5. Python compress toolkit (`skills/caveman-compress/scripts/`)
+
+`scripts/` **is a package** (`__init__.py`, `__version__ = "1.0.0"`, `__all__ = ["cli","compress","detect","validate"]`). Internal imports are **relative** (`from .detect import …`, `from .validate import …`), so tests must import as a package (e.g. `from scripts.compress import …` with repo/skill dir on `sys.path`), not as loose top-level modules. `validate.py` and `detect.py` carry no intra-package relative imports, so they are also importable standalone.
+
+Entry points: `cli.py:main` (console `caveman <filepath>`) and `python -m scripts` (`__main__.py` → `from .cli import main`). `validate.py`/`detect.py`/`benchmark.py` each have their own `__main__` blocks. `compress.py` has relative imports + no `__main__`, so it is import-only.
+
+### `compress.py` — pure vs model-bound (gates Task 5 test plan)
+- **`call_claude(prompt) -> str`** (line 122): **LIVE MODEL CALL.** Tries Anthropic SDK first if `ANTHROPIC_API_KEY` set (`anthropic.Anthropic().messages.create(model=os.environ.get("CAVEMAN_MODEL","claude-sonnet-4-5"), max_tokens=8192, …)`), else falls back to the `claude --print` CLI via `subprocess.run([claude_bin,"--print"], input=prompt, …)`. **This is why compression is NOT unit-tested for a ratio** — non-hermetic, `claude`/key may be absent.
+- **Pure / deterministic helpers** (unit-testable, no model):
+  - `split_frontmatter(text)` (28) — split YAML frontmatter from body; regex only.
+  - `backup_dir_for(filepath) -> Path` (69) — platform-aware out-of-tree backup dir; reads env (`%LOCALAPPDATA%`/`$XDG_DATA_HOME`/`~/.local/share`); deterministic given env; no file I/O.
+  - `is_sensitive_path(filepath) -> bool` (93) — denylist of secret/PII basenames, sensitive components (`.ssh`/`.aws`/`.gnupg`/`.kube`/`.docker`), name tokens.
+  - `strip_llm_wrapper(text) -> str` (106) — strip an outer ```` ```markdown ``` ```` fence wrapping whole output.
+  - `build_compress_prompt` (171), `build_fix_prompt` (190) — pure f-string assembly.
+- **`compress_file(filepath) -> bool`** (222) — orchestrator. **No-Claude early-return branches** (testable via monkeypatched `call_claude`, or reached before it):
+  1. missing file → `FileNotFoundError` (226–227)
+  2. oversize (`> MAX_FILE_SIZE = 500_000`) → `ValueError` (228–229)
+  3. sensitive path → `ValueError` refusal (235–241)
+  4. not natural language (`not should_compress`) → prints skip, `return False` (245–247)
+  5. empty/whitespace file → `return False` (257–259)
+  6. backup already exists → `return False`, abort (262–266)
+  7. empty body after frontmatter removal → `return False` (275–277)
+  - Post-`call_claude` (need monkeypatch): empty-response abort (283–286), **identical-output abort** (290–294), backup-write-verify failure (305–312), validate/retry loop (`MAX_RETRIES`).
+
+### `validate.py`
+- `class ValidationResult` (16): `is_valid` (default True), `errors`, `warnings`; `add_error` (flips `is_valid` False), `add_warning`.
+- `extract_code_blocks(text)` (41), `extract_urls(text)` (85, returns set of `https?://…`), `extract_inline_codes(text)` (97, strips fences then inline `` `…` ``). All pure.
+- `validate(original_path, compressed_path) -> ValidationResult` (173) — reads both files, runs 6 validators; **code-block / url / inline-code / heading-count mismatches are ERRORS** (verbatim guarantee); heading text/order, path, bullet-count, inline-add are warnings. This is the unit under test for "doctored compression drops a code line / URL / inline code → flagged".
+
+### `detect.py`
+- `detect_file_type(filepath) -> str` (62) → `natural_language|code|config|unknown`; extension-first, content heuristics for extensionless.
+- `should_compress(filepath) -> bool` (100) → `is_file()` and not `*.original.md` and type == `natural_language`.
+
+**Task 5 test plan confirmed**: cover `validate` (verbatim-drop detection), `detect` (classification), `compress.py` pure helpers, and `compress_file` no-Claude branches via monkeypatched `call_claude`. Do NOT write a ratio/idempotency test.
+
+---
+
+## 6. Pi subagent support — CONFIRMED ABSENT (gates Task 8)
+
+- Pi's resource model (`ResolvedPaths`) has **no `agents` type** and the manifest reader has **no `pi.agents` field**. Grep of the SDK dist for `subagent|registerAgent|defineAgent|spawnSubagent|agentPreset` → **no matches** (the only `agents` hits are `~/.agents/skills` trust-dir paths, unrelated).
+- Therefore the `agents/cavecrew-*.md` files are **not loaded by Pi as subagent presets**. The cavecrew premise ("spawn subagent → compressed tool-result into main context") has **no host mechanism in Pi 0.80.2**.
+
+**Decision for Task 8 (recommended): mark cavecrew OPTIONAL / OUT-OF-SCOPE for the Pi package.** Do not reword the `.md` files into something Pi cannot run. Task 8 should:
+- State in `cavecrew/README.md` that Pi (0.80.2) has no subagent-preset mechanism, so cavecrew is not wired in; keep the files as design notes / future work (e.g. if `pi-subagents` or a future Pi feature lands).
+- Still strip the **phantom Claude-Code references** from the cavecrew files (frontmatter `tools:`/`model:`, the `hooks/*.js` + `tests/test_symlink_flag.js` example, the `Explore`/`Code Reviewer`/`feature-dev:*` presets) so the phantom-reference sweep (Task 10) passes — replace the investigator example with a real one from this repo (e.g. `extensions/caveman.ts`).
+- Do NOT add `agents/` to the manifest.
+
+---
+
+## 7. PHANTOM Claude-Code reference catalogue (gates Tasks 6 & 8)
+
+Every reference to a Claude-Code architecture that does not exist on Pi (no `hooks/` dir, no `.js` files, no `decision:"block"` API, no session-log reader, no `⛏` badge, no subagent presets). File + line + content.
+
+### caveman-stats (Task 6) — the heaviest concentration
+| File:Line | Content |
+|-----------|---------|
+| `skills/caveman-stats/SKILL.md:5` | `Reads directly from the Claude Code session log — no AI estimation.` (frontmatter description) |
+| `skills/caveman-stats/SKILL.md:10` | delivered by `hooks/caveman-stats.js`, read by `hooks/caveman-mode-tracker.js` on `/caveman-stats`; "the hook returns `decision: "block"` with the formatted stats as the reason." |
+| `skills/caveman-stats/README.md:7` | "Reads the current Claude Code session log directly … Numbers come from the JSONL session log on disk … Output is injected by the `caveman-mode-tracker` hook, which intercepts `/caveman-stats` and returns the formatted stats as a blocked-decision reason." |
+| `skills/caveman-stats/README.md:9` | "Each run also writes a lifetime-savings suffix file used by the statusline badge (`⛏ 12.4k`)." |
+
+Phantom items in caveman-stats: `hooks/caveman-stats.js`, `hooks/caveman-mode-tracker.js`, `decision: "block"`, "Claude Code session log" / JSONL session-log reader, "lifetime-savings suffix file", `⛏` statusline badge. **None exist on Pi.** No token tracking exists anywhere in the extension. → Task 6 default: rewrite BOTH files to reality (manual/skill-driven estimate; statusline is `caveman:<mode>`; no hooks/log/badge).
+
+### cavecrew skill (Task 8) — Claude-Code subagent presets
+| File:Line | Content (abridged) |
+|-----------|--------------------|
+| `skills/cavecrew/SKILL.md:7` | frontmatter desc: "work inline or using vanilla `Explore`. Subagent output is caveman-compressed" |
+| `skills/cavecrew/SKILL.md:14` | "Same job as Anthropic defaults (`Explore`, edit-style agents, reviewer)…" |
+| `skills/cavecrew/SKILL.md:21` | table row → `Explore` (vanilla) |
+| `skills/cavecrew/SKILL.md:23` | table row → `feature-dev:code-architect` |
+| `skills/cavecrew/SKILL.md:25` | table row → `Code Reviewer` (vanilla) |
+| `skills/cavecrew/SKILL.md:32` | "A vanilla `Explore` that returns 2k tokens … `cavecrew-investigator` returns ~700 tokens." |
+| `skills/cavecrew/SKILL.md:77` | "Use `Code Reviewer` for that." |
+| `skills/cavecrew/README.md:17` | "Use vanilla `Explore` or `Code Reviewer` when you want prose…" |
+
+### agents/cavecrew-*.md (Task 8) — Claude-Code frontmatter + phantom example
+| File:Line | Content |
+|-----------|---------|
+| `agents/cavecrew-builder.md:9` | `tools: [Read, Edit, Write, Grep, Glob]` (Claude-Code frontmatter; no `model:`) |
+| `agents/cavecrew-investigator.md:7` | description references `vanilla Explore` |
+| `agents/cavecrew-investigator.md:8` | `tools: [Read, Grep, Glob, Bash]` |
+| `agents/cavecrew-investigator.md:9` | `model: haiku` |
+| `agents/cavecrew-investigator.md:49` | example: `hooks/caveman-config.js:81 — safeWriteFlag — atomic write w/ O_NOFOLLOW` |
+| `agents/cavecrew-investigator.md:50` | example: `hooks/caveman-config.js:160 — readFlag — paired reader` |
+| `agents/cavecrew-investigator.md:52` | example: `hooks/caveman-mode-tracker.js:33,87` |
+| `agents/cavecrew-investigator.md:53` | example: `hooks/caveman-activate.js:40` |
+| `agents/cavecrew-investigator.md:55` | example: `tests/test_symlink_flag.js — 12 cases` |
+| `agents/cavecrew-reviewer.md:8` | `tools: [Read, Grep, Bash]` |
+| `agents/cavecrew-reviewer.md:9` | `model: haiku` |
+
+(Frontmatter `tools:`/`model:` are Claude-Code conventions; Pi does not load `agents/` at all — §6. The `hooks/*.js` and `tests/test_symlink_flag.js` citations in `cavecrew-investigator.md` are a *worked example*, not real files; replace with a real example such as `extensions/caveman.ts`.)
+
+### Phantom strings NOT found (clean)
+- `tests/test_symlink_flag.js` appears **only** in `agents/cavecrew-investigator.md:55` (an example) — **not** under `skills/`.
+- No Read/Edit/Write/Grep/Glob tool-array prose inside skill bodies.
+- No `⛏`, `decision:"block"`, `hooks/`, or session-log refs in any skill other than `caveman-stats`, and none in the extension or Python.
+
+**Task 10 sweep targets**: `grep -rn -E 'hooks/|test_symlink_flag|decision.*block|⛏|Explore|Code Reviewer|feature-dev'` over the repo must hit zero after Tasks 6 & 8 (except anything actually implemented for Pi — none planned).
+
+---
+
+## 8. MCP `caveman-shrink` parity (gates Task 7)
+
+- Upstream caveman ships a `caveman-shrink` MCP middleware. **No `caveman-shrink` code exists on disk** here; the only "shrink" reference is tagline prose in `caveman-compress/README.md`.
+- The Pi equivalent is the Python `caveman-compress` toolkit — but note plainly it is **also Claude-bound** (`call_claude`). "Pi-native" here means "invoked via a Pi skill/command", **not** "model-independent".
+- **Recommended Task 7 decision: document the Python compress toolkit as the Pi equivalent; mark MCP-shrink OUT OF SCOPE.** (Pi does have MCP support via `--mcp-config`, but building a new MCP tool that also calls a model adds no capability over the existing compress skill.)
+
+---
+
+## 9. Concrete gap set & task-list confirmation
+
+The plan's task list is correct. Adjustments / confirmations from discovery:
+
+- **Task 2**: declare `pi: { extensions: ["./extensions/caveman.ts"], skills: ["./skills"] }` — **path confirmed honored, no `.pi/extensions/` move needed** (§2). `"type":"module"`, `keywords ⊇ ["pi-package"]`. Run `npm install` to fetch SDK + typescript locally (currently absent).
+- **Task 3**: tsconfig `module: nodenext`, `strict`, `noEmit`, include `extensions/**/*.ts`. SDK types resolve from `node_modules` after Task 2's install.
+- **Task 4**: extract pure helpers to `caveman-core.ts`; preserve the `import type` invariant (no runtime SDK needed for tests).
+- **Task 5**: **install pytest first** (not present). Test only deterministic pieces (§5). The pyc files under `scripts/__pycache__/` should be gitignored.
+- **Task 6**: rewrite caveman-stats SKILL.md + README.md to reality (no tracking exists). Also consider the caveman-help default-mode config claim (`CAVEMAN_DEFAULT_MODE` / `~/.config/caveman/config.json`) which has no Pi implementation — flag for correction.
+- **Task 7**: document Python compress as the Pi equivalent; MCP-shrink out of scope.
+- **Task 8**: **cavecrew is optional/out-of-scope** — Pi has no subagent mechanism (§6). Strip phantom refs from the 3 agent files + the cavecrew skill regardless, so the Task 10 sweep passes; do NOT add `agents/` to the manifest.
+- **Task 9**: install command = `pi install <package-dir>` (manifest honored). `install.sh` optional — `pi install` suffices.
+- Repo **is already a git repo** on branch `pi-caveman` (plan's Context said "not a git repo"; it has since been initialized). Task 9's `git init` is effectively done — only the first commit / `.gitignore` remain. A `.gitignore` already exists at repo root (verify contents in Task 2).
+
+---
+
+## 10. Live smoke test — deferred (Post-Completion)
+
+The interactive TUI smoke test (auto-activation banner, `/caveman ultra` response compression, statusline `caveman:<mode>`, "stop caveman" disable, session reset, `/caveman-compress` verbatim survival) requires the live interactive `pi` binary and cannot be driven from a non-interactive shell without hanging. **Verified statically + via a clean non-interactive `--print "/caveman-help"` exit (code 0).** Run manually:
+
+```
+PI_CODING_AGENT_DIR=~/.pi/agent-base command pi -e /Users/kulapard/projects/pi-caveman/extensions/caveman.ts --skill /Users/kulapard/projects/pi-caveman/skills
+# /caveman-help ; /caveman ultra ; ask something ; "stop caveman" ; open new session → expect off
+# /caveman-compress <a markdown file> → confirm code/URLs/paths verbatim
+```
