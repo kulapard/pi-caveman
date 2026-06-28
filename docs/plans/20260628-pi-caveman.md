@@ -44,7 +44,7 @@
 - `pi` can load the package: `package.json` declares `type: "module"`, `keywords` ⊇ `["pi-package"]`, `pi.extensions` (pointing at the confirmed extension path), `pi.skills: ["./skills"]`.
 - The extension typechecks against `@earendil-works/pi-coding-agent` with no errors.
 - Automated tests exist and pass: extension unit tests (`npm test`) and Python compress tests (`pytest`).
-- Every *declared* feature is either implemented or its skill/UX text is corrected to match reality: `/caveman-stats` (no token tracking exists), the savings statusline (currently shows mode, not %), and MCP `caveman-shrink` (does not exist — Python compress, itself Claude-bound, is the Pi equivalent unless a decision adds it).
+- Every *declared* feature is either implemented or its skill/UX text is corrected to match reality: `/caveman-stats` (no token tracking exists), the savings statusline (currently shows mode, not %), and MCP `caveman-shrink` (does not exist — **Task 7 decision: out of scope for v0.1.0**; the Python `caveman-compress` toolkit, itself Claude-bound and invoked via the `/caveman-compress` skill/command, is the Pi equivalent — decision record in `docs/audit.md` §12).
 - **No phantom references remain**: no skill or agent references `hooks/*.js`, `decision: "block"`, a "Claude Code session log" reader, the `⛏` savings badge, `tests/test_symlink_flag.js`, or Claude-Code-only subagent presets (`Explore`/`Code Reviewer`/`feature-dev:*`) unless that thing is actually implemented for Pi. (Checkable in Task 10.)
 - Verbatim preservation (code/commands/URLs/paths/errors) holds in compress and in the skill instructions.
 - Root `README.md` documents install (the confirmed `pi` mechanism), commands, and modes; repo is under git.
@@ -154,10 +154,10 @@
 - Modify: `/Users/kulapard/projects/pi-caveman/docs/audit.md` (decision record)
 - Create (only if building): `/Users/kulapard/projects/pi-caveman/extensions/mcp-shrink.*` + tests
 
-- [ ] record the gap: upstream caveman ships a `caveman-shrink` MCP middleware; there is NO `caveman-shrink` code on disk (the only "shrink" reference is tagline prose in `caveman-compress/README.md`). The Pi impl instead uses the Python `caveman-compress` toolkit — but note plainly that compress is **also Claude-bound** (`call_claude`), so "Pi-native" means "invoked via a Pi skill/command", NOT "model-independent"
-- [ ] **decision** (default: document the Python compress toolkit as the Pi equivalent and mark MCP-shrink out of scope): only if the user wants MCP parity, confirm Pi MCP support and whether an MCP tool may call a model, then add `shrink()` (TDD, verbatim-preserving) and register it
-- [ ] update Acceptance Criteria + README to state the chosen position
-- [ ] if built: tests RED→GREEN; if documented: no code (decision deliverable)
+- [x] record the gap: upstream caveman ships a `caveman-shrink` MCP middleware; there is NO `caveman-shrink` code on disk (the only "shrink" reference is tagline prose in `caveman-compress/README.md`). The Pi impl instead uses the Python `caveman-compress` toolkit — but note plainly that compress is **also Claude-bound** (`call_claude`), so "Pi-native" means "invoked via a Pi skill/command", NOT "model-independent" — done: recorded as the canonical decision record in `docs/audit.md` §12 (gap + honest Claude-bound caveat stated plainly)
+- [x] **decision** (default: document the Python compress toolkit as the Pi equivalent and mark MCP-shrink out of scope): only if the user wants MCP parity, confirm Pi MCP support and whether an MCP tool may call a model, then add `shrink()` (TDD, verbatim-preserving) and register it — done: took the DEFAULT. Documented the Python `caveman-compress` toolkit (invoked via `/caveman-compress`) as the Pi equivalent; MCP `caveman-shrink` marked OUT OF SCOPE for v0.1.0. Non-default branch NOT taken (user did not request it); no MCP tool built — a model-calling MCP tool would only duplicate the existing compress skill behind a different transport
+- [x] update Acceptance Criteria + README to state the chosen position — done: Acceptance Criteria tweaked to state the Task 7 decision (out of scope for v0.1.0) and point at `docs/audit.md` §12. README position recorded in `docs/audit.md` §12 as the canonical text **for Task 9 to carry into the root `README.md`** (root README does not exist yet — created in Task 9, per plan)
+- [x] if built: tests RED→GREEN; if documented: no code (decision deliverable) — done: documented path → no code, no tests; no `extensions/mcp-shrink.*` created
 
 ### Task 8: cavecrew Pi-compatibility (depends on Task 1's subagent finding)
 

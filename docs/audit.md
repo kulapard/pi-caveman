@@ -265,3 +265,51 @@ empty `Path.suffix`, so the `SKIP_EXTENSIONS` (`.env`) check never matched and
 True). Now leading-dot files whose full name is a known skip/config name are
 classified by filename first, so `.env` → `config`. (`compress_file` already had
 a second safety net via `is_sensitive_path`, which still refuses `.env`.)
+
+---
+
+## 12. Task 7 decision — MCP `caveman-shrink` parity (DECISION RECORD)
+
+This is the canonical decision record for Task 7. (Section 8 above is the
+discovery/gating note; this section is the final, recorded decision and is the
+text Task 9's root `README.md` must carry — see below.)
+
+### The gap
+- Upstream caveman (JuliusBrussee/caveman) ships a **`caveman-shrink` MCP
+  middleware** that sits between the agent and the model to shrink payloads.
+- **pi-caveman has none.** There is **NO `caveman-shrink` code anywhere on
+  disk** — grep for `shrink` returns only tagline prose
+  (`skills/caveman-compress/README.md:8`: "shrink memory file. save token every
+  session.") and the analogy line in `skills/cavecrew/SKILL.md:14` ("main
+  context shrinks per delegation"). Neither is an MCP tool.
+
+### The decision (DEFAULT — adopted)
+- **The Python `caveman-compress` toolkit is the Pi equivalent of upstream's
+  MCP shrink**, invoked via the `/caveman-compress` skill/command. MCP
+  `caveman-shrink` is **OUT OF SCOPE for v0.1.0.**
+- We did **NOT** build an MCP tool. The user did not request the non-default
+  branch, and Pi MCP support (`--mcp-config`) notwithstanding, a new MCP tool
+  that also calls a model would add **no capability** over the existing compress
+  skill — it would only duplicate it behind a different transport.
+
+### Honest caveat (state plainly)
+- `caveman-compress` is **itself Claude-bound**: `compress.py` `call_claude()`
+  performs compression via a live model call (Anthropic SDK if
+  `ANTHROPIC_API_KEY` is set, else the `claude --print` CLI). So **"Pi-native"
+  here means "invoked via a Pi skill/command", NOT "model-independent".** The Pi
+  equivalence is one of *invocation surface*, not of *model independence*. This
+  is the same nature as upstream's MCP shrink (also a model-mediated transform);
+  the difference is only the integration mechanism (Pi skill vs MCP middleware).
+
+### Consequences
+- Plan **Acceptance Criteria** already reflects this (the MCP-`caveman-shrink`
+  bullet: "does not exist — Python compress, itself Claude-bound, is the Pi
+  equivalent unless a decision adds it"). Verified consistent — no edit needed.
+- **Task 9 carry-over (action item)**: the root `README.md` created in Task 9
+  must state this position explicitly — i.e. that `caveman-shrink` MCP
+  middleware is out of scope and that `/caveman-compress` (Claude-bound, invoked
+  via a Pi skill/command) is pi-caveman's equivalent. The root README does not
+  exist yet (created in Task 9), so this text is recorded here as the canonical
+  source for Task 9 to copy.
+- **No code, no tests** for this task (decision deliverable). No
+  `extensions/mcp-shrink.*` created.
