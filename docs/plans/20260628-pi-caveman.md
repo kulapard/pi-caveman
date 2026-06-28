@@ -143,10 +143,10 @@
 - Modify: `/Users/kulapard/projects/pi-caveman/skills/caveman-stats/README.md`
 - Modify: `/Users/kulapard/projects/pi-caveman/extensions/caveman.ts` (only if implementing tracking)
 
-- [ ] enumerate the specific phantom claims in BOTH files: `caveman-stats/SKILL.md` references `hooks/caveman-stats.js`, `hooks/caveman-mode-tracker.js`, `decision: "block"`, and a "Claude Code session log"; `caveman-stats/README.md` references the same hooks plus the `⛏ 12.4k` statusline badge and a "lifetime-savings suffix file" — none of which exist on Pi
-- [ ] **decision** (default: rewrite BOTH SKILL.md and README.md to match reality — stats are a manual/skill-driven estimate, statusline is a `caveman:<mode>` indicator, no hooks/session-log/badge): if the user instead wants real tracking, add a minimal session-entry counter in the extension and surface it via `setStatus` + the skill
-- [ ] if docs were corrected: add a content test asserting neither `caveman-stats` file references `hooks/*.js`, `decision:"block"`, a session-log reader, or the `⛏` badge. If tracking was implemented: add unit tests for the counter
-- [ ] run relevant tests — verify GREEN
+- [x] enumerate the specific phantom claims in BOTH files: `caveman-stats/SKILL.md` references `hooks/caveman-stats.js`, `hooks/caveman-mode-tracker.js`, `decision: "block"`, and a "Claude Code session log"; `caveman-stats/README.md` references the same hooks plus the `⛏ 12.4k` statusline badge and a "lifetime-savings suffix file" — none of which exist on Pi — done: confirmed against current files (SKILL.md:5,10; README.md:7,9) and audit §7
+- [x] **decision** (default: rewrite BOTH SKILL.md and README.md to match reality — stats are a manual/skill-driven estimate, statusline is a `caveman:<mode>` indicator, no hooks/session-log/badge): if the user instead wants real tracking, add a minimal session-entry counter in the extension and surface it via `setStatus` + the skill — done: took the DEFAULT (corrected docs). Rewrote both files: stats = on-demand model-driven estimate (Pi exposes no per-turn usage), statusline = `caveman:<mode>` mode indicator. No tracking added to the extension (non-default branch; not requested)
+- [x] if docs were corrected: add a content test asserting neither `caveman-stats` file references `hooks/*.js`, `decision:"block"`, a session-log reader, or the `⛏` badge. If tracking was implemented: add unit tests for the counter — done: `tests/stats-docs.test.mjs` reads both files and asserts absence of `hooks/`, `caveman-stats.js`, `caveman-mode-tracker.js`, `decision: "block"`/`decision:"block"`, "session log"/"session-log", `⛏`, "lifetime-savings"; plus a frontmatter-validity assertion
+- [x] run relevant tests — verify GREEN — done: `npm test` → pretest typecheck exit 0, then 31/31 pass (28 prior + 3 new). Python unaffected: `.venv/bin/pytest skills/caveman-compress` → 58 passed
 
 ### Task 7: Decide MCP caveman-shrink parity
 

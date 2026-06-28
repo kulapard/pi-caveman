@@ -1,12 +1,18 @@
 # caveman-stats
 
-Real session token receipts. No AI estimation.
+On-demand estimate of caveman token savings. Manual, not tracked.
 
 ## What it does
 
-Reads the current Claude Code session log directly and reports actual input/output token usage plus estimated savings versus a non-caveman baseline. Numbers come from the JSONL session log on disk — the model itself does not compute or estimate them. Output is injected by the `caveman-mode-tracker` hook, which intercepts `/caveman-stats` and returns the formatted stats as a blocked-decision reason.
+Pi does not hand per-turn token usage to the extension, so there is no automatic
+meter and no on-disk usage record to read. Instead, `/caveman-stats` asks the
+model to estimate savings on the spot: it compares the terse caveman output
+already produced this session against the verbose prose it would have written
+otherwise, and reports both sizes plus the percentage saved. The number is an
+estimate, clearly labelled as such.
 
-Each run also writes a lifetime-savings suffix file used by the statusline badge (`⛏ 12.4k`).
+The Pi statusline shows the current mode only — `caveman:<mode>` (set by the
+extension via `ctx.ui.setStatus`). It is a mode indicator, not a savings badge.
 
 ## How to invoke
 
@@ -17,14 +23,14 @@ Each run also writes a lifetime-savings suffix file used by the statusline badge
 ## Example output
 
 ```
-Session: 47 turns
-Input:   12,304 tokens
-Output:   3,891 tokens (caveman)
-Baseline: 11,247 tokens (estimated without caveman)
-Saved:    7,356 tokens (~65%)
+Caveman savings (estimate — Pi does not expose exact token counts)
+
+Caveman output this session: ~3,900 tokens
+Verbose baseline (estimated): ~11,200 tokens
+Saved:                        ~7,300 tokens (~65%)
 ```
 
 ## See also
 
-- [`SKILL.md`](./SKILL.md) — hook contract and mechanics
+- [`SKILL.md`](./SKILL.md) — how the estimate is produced
 - [Caveman README](../../README.md) — repo overview
