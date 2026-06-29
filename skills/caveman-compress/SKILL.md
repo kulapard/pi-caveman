@@ -4,7 +4,7 @@ description: >
   Compress natural language memory files (AGENTS.md, CLAUDE.md, todos, preferences) into caveman
   format to save input tokens. Preserves all technical substance, code, URLs, and structure.
   Compressed version overwrites the original file. Human-readable backup saved as FILE.original.<ext> (same extension as the source).
-  Trigger: /caveman-compress FILEPATH or "compress memory file"
+  Trigger: /caveman-compress FILEPATH [--force]
 ---
 
 # Caveman Compress
@@ -15,16 +15,19 @@ Compress natural language files (`AGENTS.md`, `CLAUDE.md`, todos, preferences) i
 
 ## Trigger
 
-`/caveman-compress <filepath>` or when user asks to compress a memory file.
+`/caveman-compress <filepath>` or when user asks to compress a memory file. Append `--force` to overwrite an existing `.original.<ext>` backup instead of aborting.
 
 ## Process
 
-You (the Pi agent) perform the compression directly — there is no separate tool to run. Given `/caveman-compress <filepath>`:
+You (the Pi agent) perform the compression directly — there is no separate tool to run. Given `/caveman-compress <filepath>` (optionally with `--force`):
 
 1. **Skip backups.** If the path ends in `.original.<ext>` or, for extensionless files, in `.original` (e.g. `AGENTS.original.md`, `NOTES.original`), stop — never compress a backup file.
 2. **Check it is compressible** per **Boundaries** below: prose files (`.md`, `.txt`, `.rst`, `.typ`, `.typst`, `.tex`, or extensionless natural language). If it is code/config (`.py`, `.js`, `.ts`, `.json`, `.yaml`, …) or larger than ~500 KB, report it is out of scope and stop.
 3. **Read** the file's full contents.
-4. **Back up the original.** If a `.original`/`.original.<ext>` backup already exists, **abort** and tell the user to remove or rename the stale backup before re-compressing. Otherwise write a verbatim copy to `<filename>.original.<ext>` (or `<filename>.original` for extensionless files) before any rewrite.
+4. **Back up the original.** If a `.original`/`.original.<ext>` backup already exists:
+   - Without `--force`, **abort** and tell the user to remove or rename the stale backup before re-compressing.
+   - With `--force`, overwrite the existing backup with a verbatim copy of the current source before any rewrite.
+   If no backup exists, write a verbatim copy to `<filename>.original.<ext>` (or `<filename>.original` for extensionless files) before any rewrite.
 5. **Rewrite** the file in place, applying the **Compression Rules** below. Treat code blocks, inline code, URLs, paths, commands, headings, and table structure as read-only regions.
 6. **Self-validate** against the contents you read in step 3: every protected token — fenced and inline code, URLs, file paths, heading text, table structure, dates/version numbers — must be byte-for-byte identical. If any changed, fix just that region; if you cannot make it identical, restore the file from the backup you wrote in step 4 and report the failure rather than leave a corrupted file.
 7. **Report** the result: bytes before/after and the approximate reduction.

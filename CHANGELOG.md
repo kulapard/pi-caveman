@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `/caveman-compress` now accepts an optional `--force` flag. With `--force`, an existing `.original.<ext>` backup is overwritten instead of aborting.
+
 ### Changed
 
-- Updated README, AGENTS.md, and caveman-help docs to reflect the
-  project-scoped persistence added in v0.4.3 (`.pi/caveman-mode.json`) and the
-  live context-usage footer stat.
+- Updated README, AGENTS.md, caveman-help, and caveman-compress docs to reflect the project-scoped persistence added in v0.4.3 and the new `--force` flag.
 
 ## [0.4.2] - 2026-06-29
 

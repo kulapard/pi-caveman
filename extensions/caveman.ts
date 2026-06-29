@@ -20,7 +20,7 @@ Commands:
 - /caveman-help — show this card.
 - /caveman-commit [notes] — generate Conventional Commit message. Does not commit.
 - /caveman-review [scope] — terse review comments.
-- /caveman-compress <file> — compress prose file via caveman-compress skill.
+- /caveman-compress <file> [--force] — compress prose file via caveman-compress skill. --force overwrites an existing .original backup.
 - /caveman-stats — load stats skill/help.
 
 Mode persists across sessions in the same project via \`.pi/caveman-mode.json\`, and
@@ -121,14 +121,20 @@ export default function cavemanExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("caveman-compress", {
-		description: "Compress prose/memory file into caveman style",
+		description:
+			"Compress prose/memory file into caveman style (optional --force)",
 		handler: async (args, ctx) => {
-			const target = args?.trim();
+			const raw = args?.trim() ?? "";
+			const tokens = raw.split(/\s+/).filter(Boolean);
+			const force = tokens.includes("--force");
+			const target = tokens.filter((t) => t !== "--force").join(" ");
 			if (!target) {
-				ctx.ui.notify("Usage: /caveman-compress <file>", "error");
+				ctx.ui.notify("Usage: /caveman-compress <file> [--force]", "error");
 				return;
 			}
-			pi.sendUserMessage(`/skill:caveman-compress ${target}`);
+			pi.sendUserMessage(
+				`/skill:caveman-compress ${target}${force ? " --force" : ""}`,
+			);
 		},
 	});
 

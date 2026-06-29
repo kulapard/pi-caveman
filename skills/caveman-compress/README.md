@@ -25,7 +25,7 @@ AGENTS.md          ← compressed (the agent reads this — fewer tokens every s
 AGENTS.original.md ← human-readable backup (snapshot taken at first compression)
 ```
 
-Original never lost — first compression writes a verbatim backup. To edit and re-compress, **edit `AGENTS.md` itself**, then delete or rename the existing `AGENTS.original.md` so the next `/caveman-compress` can create a fresh backup.
+Original never lost — first compression writes a verbatim backup. To edit and re-compress, **edit `AGENTS.md` itself**, then delete or rename the existing `AGENTS.original.md` so the next `/caveman-compress` can create a fresh backup. Or use `/caveman-compress AGENTS.md --force` to overwrite the existing backup in one step.
 
 ## Benchmarks
 
@@ -77,7 +77,7 @@ its own model and file tools — there is no separate tool or language to instal
 ## Usage
 
 ```
-/caveman-compress <filepath>
+/caveman-compress <filepath> [--force]
 ```
 
 Examples:
@@ -87,6 +87,7 @@ Examples:
 /caveman-compress CLAUDE.md
 /caveman-compress docs/preferences.md
 /caveman-compress todos.md
+/caveman-compress AGENTS.md --force
 ```
 
 ### What files work

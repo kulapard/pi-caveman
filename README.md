@@ -92,7 +92,7 @@ session ends.
 | `/caveman-help` | Show the quick-reference card. |
 | `/caveman-commit [notes]` | Generate a terse Conventional Commit message. Does **not** commit. |
 | `/caveman-review [scope]` | One-line-per-finding code review comments. |
-| `/caveman-compress <file>` | Compress a prose file via the caveman-compress skill. |
+| `/caveman-compress <file> [--force]` | Compress a prose file via the caveman-compress skill. `--force` overwrites an existing `.original` backup. |
 | `/caveman-stats` | Load the stats skill (an on-demand, model-driven estimate). |
 
 ## Natural-language activation

@@ -335,7 +335,38 @@ test("/caveman-compress: dispatches the skill message for a valid target", async
 	const compress = fake.commands.get("caveman-compress");
 	await compress.handler("docs/notes.md", ctx);
 	assert.equal(fake.userMessages.length, 1);
-	assert.match(fake.userMessages[0], /caveman-compress docs\/notes\.md/);
+	assert.match(
+		fake.userMessages[0],
+		/^\/skill:caveman-compress docs\/notes\.md$/,
+	);
+});
+
+test("/caveman-compress: --force before file appends the flag", async () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const { ctx, notifications } = makeFakeCtx();
+	const compress = fake.commands.get("caveman-compress");
+	await compress.handler("--force docs/notes.md", ctx);
+	assert.equal(notifications.length, 0);
+	assert.equal(fake.userMessages.length, 1);
+	assert.match(
+		fake.userMessages[0],
+		/^\/skill:caveman-compress docs\/notes\.md --force$/,
+	);
+});
+
+test("/caveman-compress: --force after file appends the flag", async () => {
+	const fake = makeFakePi();
+	cavemanExtension(fake.pi);
+	const { ctx, notifications } = makeFakeCtx();
+	const compress = fake.commands.get("caveman-compress");
+	await compress.handler("docs/notes.md --force", ctx);
+	assert.equal(notifications.length, 0);
+	assert.equal(fake.userMessages.length, 1);
+	assert.match(
+		fake.userMessages[0],
+		/^\/skill:caveman-compress docs\/notes\.md --force$/,
+	);
 });
 
 test("/caveman-help: sends the HELP_TEXT card with customType caveman-help", async () => {

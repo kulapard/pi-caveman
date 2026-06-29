@@ -19,6 +19,7 @@ Project memory. Non-obvious only.
 - **SDK import `import type` only** in `extensions/*.ts`. JS tests run via `--experimental-strip-types`, erases type-only imports. Value import from `@earendil-works/pi-coding-agent` breaks tests — `tests/extension.test.mjs` asserts this.
 - **Verbatim preservation**: caveman-compress never changes code blocks, inline code, URLs, paths, commands, exact error strings. Self-validate against original. Mismatch unfixable → restore from `.original` backup created in same invocation (stale backups rejected before compression).
 - `caveman-compress` is **prompt-only**: Pi agent compresses with own model + file tools, driven by `SKILL.md`. No Python, no external model CLI. Coverage = `tests/compress-docs.test.mjs`.
+- `/caveman-compress` supports `--force`: overwrites existing `.original.<ext>` backup instead of aborting.
 
 ## Changelog
 
