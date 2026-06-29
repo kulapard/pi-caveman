@@ -116,11 +116,13 @@ is cleared.
 
 ## Compression vs. upstream MCP shrink
 
-Upstream caveman ships a `caveman-shrink` **MCP middleware** that sits between the
-agent and the model. pi-caveman does **not** include that, and MCP `caveman-shrink`
-is **out of scope for v0.1.0**.
+Upstream caveman ships a `caveman-shrink` **MCP middleware** — a stdio proxy that
+sits between an MCP client and an upstream MCP server and compresses the server's
+tool descriptions. pi-caveman does **not** bundle it: that proxy works at the
+MCP-client layer, independent of Pi, and upstream itself ships it as a separate
+package — so it does not belong in this extension-plus-skills package.
 
-The Pi equivalent is the Python `caveman-compress` toolkit, invoked via the
+The Pi-side equivalent is the Python `caveman-compress` toolkit, invoked via the
 `/caveman-compress` skill/command, which compresses prose memory files in place
 (writing a `FILE.original.md` backup) while preserving code, URLs, and paths
 verbatim. Note plainly: `caveman-compress` is **itself Claude-bound** — it
