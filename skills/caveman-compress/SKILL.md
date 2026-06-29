@@ -3,7 +3,7 @@ name: caveman-compress
 description: >
   Compress natural language memory files (AGENTS.md, CLAUDE.md, todos, preferences) into caveman
   format to save input tokens. Preserves all technical substance, code, URLs, and structure.
-  Compressed version overwrites the original file. Human-readable backup saved as FILE.original.md.
+  Compressed version overwrites the original file. Human-readable backup saved as FILE.original.<ext> (same extension as the source).
   Trigger: /caveman-compress FILEPATH or "compress memory file"
 ---
 
@@ -11,7 +11,7 @@ description: >
 
 ## Purpose
 
-Compress natural language files (`AGENTS.md`, `CLAUDE.md`, todos, preferences) into caveman-speak to reduce input tokens. Compressed version overwrites original. Human-readable backup saved as `<filename>.original.md`.
+Compress natural language files (`AGENTS.md`, `CLAUDE.md`, todos, preferences) into caveman-speak to reduce input tokens. Compressed version overwrites original. Human-readable backup saved as `<filename>.original.<ext>` (same extension as the source, e.g. `AGENTS.md` → `AGENTS.original.md`, `notes.txt` → `notes.original.txt`).
 
 ## Trigger
 
@@ -104,5 +104,5 @@ Compressed:
 - Skip files larger than ~500 KB (too big to rewrite safely in one pass)
 - If file has mixed content (prose + code), compress ONLY the prose sections
 - If unsure whether something is code or prose, leave it unchanged
-- Original file is backed up as FILE.original.md before overwriting
-- Never compress FILE.original.md (skip it)
+- Original file is backed up as FILE.original.<ext> (same extension as the source) before overwriting
+- Never compress a FILE.original.<ext> backup (skip it)

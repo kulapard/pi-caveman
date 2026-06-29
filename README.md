@@ -118,7 +118,7 @@ package — so it does not belong in this extension-plus-skills package.
 
 The Pi-side equivalent is the `caveman-compress` skill, invoked via the
 `/caveman-compress` command. It is prompt-only: the Pi agent itself compresses a
-prose memory file in place (writing a `FILE.original.md` backup) using its own
+prose memory file in place (writing a `FILE.original.<ext>` backup) using its own
 model and file tools, preserving code, URLs, and paths verbatim. No Python and no
 external Claude CLI are involved — compression is performed by the host Pi agent,
 the same way the other skills work.

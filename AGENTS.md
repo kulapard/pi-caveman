@@ -12,6 +12,12 @@ Project memory for agents working in this repo. Non-obvious conventions only.
   session always starts `off`. There is **no** cross-session config file or env var.
 - Activation = `before_agent_start` appends `modeInstructions(mode)` to the
   system prompt. Statusline = `ctx.ui.setStatus("caveman", …)` guarded by `hasUI`.
+- The extension's `modeInstructions` injection is the **canonical** activator;
+  the `caveman` skill (`skills/caveman/SKILL.md`) is a standalone fallback for
+  hosts that load skills but not this extension. When both are active the model
+  may see both rule sets — mild, intentional redundancy. They are not
+  programmatically de-duped: skill loading is model-driven and the skill's prose
+  differs from `modeInstructions`, so there is no reliable text to match on.
 - Pi 0.80.2 has **no `agents/` subagent mechanism**. The `agents/cavecrew-*.md`
   files are reference personas only and cavecrew is optional/out-of-scope.
 

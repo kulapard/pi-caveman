@@ -133,15 +133,14 @@ export default function cavemanExtension(pi: ExtensionAPI) {
 	});
 
 	pi.on("input", (event, ctx) => {
-		if (event.source === "extension") return { action: "continue" as const };
-		const text = (event.text ?? "").trim();
-		if (DEACTIVATION_RE.test(text)) {
-			if (mode !== "off") persistMode("off", ctx);
-			return { action: "continue" as const };
-		}
-		if (mode === "off" && ACTIVATION_RE.test(text)) {
-			persistMode("full", ctx);
-			return { action: "continue" as const };
+		// Ignore the extension's own echoed input (self-echo guard).
+		if (event.source !== "extension") {
+			const text = (event.text ?? "").trim();
+			if (DEACTIVATION_RE.test(text)) {
+				if (mode !== "off") persistMode("off", ctx);
+			} else if (mode === "off" && ACTIVATION_RE.test(text)) {
+				persistMode("full", ctx);
+			}
 		}
 		return { action: "continue" as const };
 	});

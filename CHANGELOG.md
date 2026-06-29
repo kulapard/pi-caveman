@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (abbreviate prose words, arrows for causality).
 - Input handler no longer throws when an input event arrives without `text`
   (`event.text.trim()` → `(event.text ?? "").trim()`).
+- `caveman-compress` docs said the backup is always `FILE.original.md`, but the
+  skill preserves the source extension; corrected to `FILE.original.<ext>`.
 
 ### Changed
 
