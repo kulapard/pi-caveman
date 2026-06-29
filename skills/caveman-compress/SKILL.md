@@ -19,21 +19,17 @@ Compress natural language files (`AGENTS.md`, `CLAUDE.md`, todos, preferences) i
 
 ## Process
 
-1. The compression scripts live in `scripts/` (adjacent to this SKILL.md). If the path is not immediately available, search for `scripts/__main__.py` next to this SKILL.md.
+You (the Pi agent) perform the compression directly — there is no separate tool to run. Given `/caveman-compress <filepath>`:
 
-2. From the directory containing this SKILL.md, run:
+1. **Skip backups.** If the path ends in `.original.<ext>` (e.g. `AGENTS.original.md`), stop — never compress a backup file.
+2. **Check it is compressible** per **Boundaries** below: prose files (`.md`, `.txt`, `.rst`, `.typ`, `.typst`, `.tex`, or extensionless natural language). If it is code/config (`.py`, `.js`, `.ts`, `.json`, `.yaml`, …) or larger than ~500 KB, report it is out of scope and stop.
+3. **Read** the file's full contents.
+4. **Back up the original.** Write a verbatim copy to `<filename>.original.<ext>` (e.g. `AGENTS.md` → `AGENTS.original.md`), **only if that backup does not already exist** — never overwrite an existing `.original` backup.
+5. **Rewrite** the file in place, applying the **Compression Rules** below. Treat code blocks, inline code, URLs, paths, commands, headings, and table structure as read-only regions.
+6. **Self-validate** against the contents you read in step 3: every protected token — fenced and inline code, URLs, file paths, heading text, table structure, dates/version numbers — must be byte-for-byte identical. If any changed, fix just that region; if you cannot make it identical, restore the file from the `.original` backup and report the failure rather than leave a corrupted file.
+7. **Report** the result: bytes before/after and the approximate reduction.
 
-python3 -m scripts <absolute_filepath>
-
-3. The CLI will:
-- detect file type (no tokens)
-- call a model to compress (Anthropic SDK if `ANTHROPIC_API_KEY` is set, else the `claude --print` CLI)
-- validate output (no tokens)
-- if errors: cherry-pick fix via the same model call (targeted fixes only, no recompression)
-- retry up to 2 times
-- if still failing after 2 retries: report error to user, leave original file untouched
-
-4. Return result to user
+Only the rewrite needs the model (you); detection, backup, and validation are mechanical.
 
 ## Compression Rules
 

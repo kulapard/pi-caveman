@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -10,14 +10,26 @@ const compressDir = join(repoRoot, "skills", "caveman-compress");
 
 const files = ["SKILL.md", "README.md"];
 
-// Phantom / wrong-provider references that must not regress into the
-// caveman-compress docs. The skill is shipped as a Pi package skill — not a
-// "Claude Code skill" and not installed via a Claude-Code "plugin". The broken
-// docs/assets image path must also stay gone (the directory does not exist).
+// Wrong-provider framing and broken assets that must not regress.
 const forbiddenSubstrings = [
 	"claude code", // wrong-provider framing
 	"docs/assets", // broken image path
 	"dancing-rock", // broken image asset
+];
+
+// The skill is prompt-only — the Pi agent performs the compression. No Python
+// toolkit, no external model CLI. These tokens must not appear in the docs.
+const forbiddenPythonResidue = [
+	"python3",
+	"scripts/",
+	"call_claude",
+	"compress.py",
+	"validate.py",
+	"detect.py",
+	"subprocess",
+	"pytest",
+	"anthropic_api_key",
+	"claude --print",
 ];
 
 for (const file of files) {
@@ -31,16 +43,40 @@ for (const file of files) {
 			);
 		}
 	});
+
+	test(`caveman-compress/${file} has no Python-toolkit residue`, () => {
+		const content = readFileSync(join(compressDir, file), "utf8");
+		const lower = content.toLowerCase();
+		for (const needle of forbiddenPythonResidue) {
+			assert.ok(
+				!lower.includes(needle),
+				`${file} is prompt-only and must not reference "${needle}"`,
+			);
+		}
+	});
 }
 
 test("caveman-compress/README.md does not document a plugin-based install path", () => {
 	const content = readFileSync(join(compressDir, "README.md"), "utf8");
-	// The upstream "Install the `caveman` plugin once" instruction is
-	// Claude-Code-only and unrunnable on Pi. The Pi install path is `pi -e` /
-	// `pi install` (documented in the root README).
 	assert.doesNotMatch(
 		content,
 		/install (the )?`?caveman`? (plugin|once)/i,
 		"README must not document the Claude-Code plugin install path",
+	);
+});
+
+test("SKILL.md documents the in-place backup step", () => {
+	const content = readFileSync(join(compressDir, "SKILL.md"), "utf8");
+	assert.match(
+		content,
+		/\.original\./,
+		"SKILL.md must document the <file>.original.<ext> backup",
+	);
+});
+
+test("the Python-only SECURITY.md is gone", () => {
+	assert.ok(
+		!existsSync(join(compressDir, "SECURITY.md")),
+		"SECURITY.md documented the Python subprocess/Snyk rating and must be removed",
 	);
 });

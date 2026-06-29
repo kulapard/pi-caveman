@@ -40,7 +40,7 @@ Real results on real project files:
 | `mixed-with-code.md` | 888 | 560 | **36.9%** |
 | **Average** | **898** | **481** | **46%** |
 
-All validations passed ✅ — headings, code blocks, URLs, file paths preserved exactly.
+Headings, code blocks, URLs, and file paths preserved exactly.
 
 ## Before / After
 
@@ -65,23 +65,14 @@ All validations passed ✅ — headings, code blocks, URLs, file paths preserved
 
 **Same instructions. ~60% fewer tokens in this example (46% average across the files above). Every. Single. Session.**
 
-## Security
-
-`caveman-compress` is flagged as Snyk High Risk due to subprocess and file I/O patterns detected by static analysis. This is a false positive — see [SECURITY.md](./SECURITY.md) for a full explanation of what the skill does and does not do.
-
 ## Install
 
 This skill ships inside the pi-caveman package. Load the package (see the
 [root README](../../README.md) for the `pi -e … --skill …` / `pi install`
 mechanism), then use `/caveman-compress` in a Pi session.
 
-The compress toolkit lives at `skills/caveman-compress/` within the package; the
-skill instructions run the Python CLI under `scripts/`.
-
-**Requires:** Python 3.10+. Compression calls a model (the Anthropic SDK if
-`ANTHROPIC_API_KEY` is set, otherwise the `claude --print` CLI), so one of those
-must be available — see [Security](#security) and the root README's
-"Compression vs. upstream MCP shrink" note for why this step is model-bound.
+No extra runtime is required: the Pi agent performs the compression itself with
+its own model and file tools — there is no separate tool or language to install.
 
 ## Usage
 
@@ -111,23 +102,20 @@ Examples:
 ```
 /caveman-compress AGENTS.md
         ↓
-detect file type        (no tokens)
+agent detects file type      (prose? else skip)
         ↓
-toolkit calls a model to compress   (tokens — one call)
+agent backs up original  →  AGENTS.original.md   (verbatim, never overwritten)
         ↓
-validate output         (no tokens)
-  checks: headings, code blocks, URLs, file paths, bullets
+agent rewrites prose to caveman, code/URLs/paths left exact
         ↓
-if errors: model fixes cherry-picked issues only    (tokens — targeted fix)
-  does NOT recompress — only patches broken parts
+agent self-validates: protected tokens byte-identical to original
         ↓
-retry up to 2 times
+if a protected token changed: fix it, or restore from backup and report
         ↓
-write compressed → AGENTS.md
-write original   → AGENTS.original.md
+write compressed  →  AGENTS.md
 ```
 
-Only two things use tokens: initial compression + targeted fix if validation fails. Everything else is local Python.
+The agent does this with its own model and file tools — no external CLI, no separate runtime.
 
 ## What Is Preserved
 
@@ -148,15 +136,6 @@ Caveman compress natural language. It never touch:
 A memory file (`AGENTS.md` / `CLAUDE.md`) loads on **every session start**. A 1000-token project memory file costs tokens every single time you open a project. Over 100 sessions that's 100,000 tokens of overhead — just for context you already wrote.
 
 Caveman cut that by ~46% on average. Same instructions. Same accuracy. Less waste.
-
-```
-┌────────────────────────────────────────────┐
-│  TOKEN SAVINGS PER FILE    █████       46% │
-│  SESSIONS THAT BENEFIT     ██████████ 100% │
-│  INFORMATION PRESERVED     ██████████ 100% │
-│  SETUP TIME                █            1x │
-└────────────────────────────────────────────┘
-```
 
 ## Part of Caveman
 
