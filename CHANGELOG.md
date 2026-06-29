@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-29
+
 ### Fixed
 
 - `caveman-compress` no longer restores from a potentially stale `.original`
@@ -88,7 +90,8 @@ port of [caveman](https://github.com/JuliusBrussee/caveman).
   token, automatic provenance, a tag-equals-version guard, and a concurrency
   group).
 
-[Unreleased]: https://github.com/kulapard/pi-caveman/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/kulapard/pi-caveman/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/kulapard/pi-caveman/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/kulapard/pi-caveman/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kulapard/pi-caveman/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kulapard/pi-caveman/releases/tag/v0.1.0
