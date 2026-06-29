@@ -12,9 +12,9 @@ plus a set of skills under `skills/`.
 
 ## Install
 
-pi-caveman publishes to npm as
+pi-caveman is published to npm as
 [`@kulapard/pi-caveman`](https://www.npmjs.com/package/@kulapard/pi-caveman).
-Once the first release is live, install it into a Pi setup with:
+Install it into a Pi setup with:
 
 ```bash
 pi install npm:@kulapard/pi-caveman
