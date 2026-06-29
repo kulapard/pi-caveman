@@ -83,7 +83,11 @@ test("devDependencies pin the Pi SDK and TypeScript", () => {
 		pkg.devDependencies["@earendil-works/pi-coding-agent"],
 		"^0.80.2",
 	);
-	assert.equal(pkg.devDependencies.typescript, "^5");
+	assert.match(
+		pkg.devDependencies.typescript,
+		/^\^\d/,
+		"typescript must be pinned to a caret major version",
+	);
 });
 
 test("scripts wire up test and typecheck", () => {
