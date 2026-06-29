@@ -1,9 +1,26 @@
 {
-  "name": "pi-caveman",
+  "name": "@kulapard/pi-caveman",
   "version": "0.1.0",
   "description": "Caveman for Pi: ultra-compressed agent output that preserves technical substance. Six intensity modes, slash commands, natural-language activation, and a session statusline.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kulapard/pi-caveman.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kulapard/pi-caveman/issues"
+  },
+  "homepage": "https://github.com/kulapard/pi-caveman#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "extensions",
+    "skills",
+    "agents",
+    "AGENTS.md"
+  ],
   "engines": {
     "node": ">=18"
   },
@@ -27,7 +44,8 @@
     "pretest": "npm run typecheck",
     "test": "node --experimental-strip-types --test tests/**/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "test:py": ".venv/bin/pytest skills/caveman-compress"
+    "test:py": ".venv/bin/pytest skills/caveman-compress",
+    "prepublishOnly": "npm test"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^0.80.2",
