@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- README install instructions now recommend `pi install
+  https://github.com/kulapard/pi-caveman` as the primary direct-load method,
+  keeping `pi -e` documented as a per-session fallback.
+
 ## [0.4.0] - 2026-06-29
 
 ### Fixed

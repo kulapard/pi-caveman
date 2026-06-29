@@ -20,13 +20,23 @@ Install it into a Pi setup with:
 pi install npm:@kulapard/pi-caveman
 ```
 
-You can also load it straight from a checkout on disk (no install needed) — see
-the `pi -e` mechanism below.
+You can also load it straight from a checkout on disk — see the `pi -e`
+mechanism below.
 
-### Load the extension directly (confirmed mechanism)
+### Install from GitHub
 
-The simplest, confirmed way to load it is Pi's `-e` flag, which loads the
-extension file for a session:
+The simplest way to load the latest version directly from the repository is:
+
+```bash
+pi install https://github.com/kulapard/pi-caveman
+```
+
+Pi resolves the `pi` block in `package.json` and loads both the extension and
+all skills from the cloned directory.
+
+### Load the extension directly (per-session)
+
+For quick testing without installing, use Pi's `-e` flag for a single session:
 
 ```bash
 pi -e /path/to/pi-caveman/extensions/caveman.ts --skill /path/to/pi-caveman/skills
