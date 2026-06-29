@@ -56,12 +56,6 @@ persistent install over a per-session `pi -e`.
 ```bash
 npm install            # fetch the Pi SDK + TypeScript dev deps
 npm test               # typecheck + extension/manifest/docs unit tests
-
-# Python tests for the caveman-compress toolkit need pytest in a local venv
-# (pytest is not on PATH on a fresh checkout):
-python3 -m venv .venv
-.venv/bin/pip install pytest
-npm run test:py        # runs: .venv/bin/pytest skills/caveman-compress
 ```
 
 ## Modes
@@ -122,16 +116,12 @@ tool descriptions. pi-caveman does **not** bundle it: that proxy works at the
 MCP-client layer, independent of Pi, and upstream itself ships it as a separate
 package — so it does not belong in this extension-plus-skills package.
 
-The Pi-side equivalent is the Python `caveman-compress` toolkit, invoked via the
-`/caveman-compress` skill/command, which compresses prose memory files in place
-(writing a `FILE.original.md` backup) while preserving code, URLs, and paths
-verbatim. Note plainly: `caveman-compress` is **itself Claude-bound** — it
-performs compression via a live model call (the Anthropic SDK if
-`ANTHROPIC_API_KEY` is set, otherwise the `claude --print` CLI). So "the Pi
-equivalent" means *invoked via a Pi skill/command*, **not** *model-independent*.
-This is the same nature as upstream's MCP shrink (also a model-mediated
-transform); only the integration mechanism differs (a Pi skill here vs. MCP
-middleware upstream).
+The Pi-side equivalent is the `caveman-compress` skill, invoked via the
+`/caveman-compress` command. It is prompt-only: the Pi agent itself compresses a
+prose memory file in place (writing a `FILE.original.md` backup) using its own
+model and file tools, preserving code, URLs, and paths verbatim. No Python and no
+external Claude CLI are involved — compression is performed by the host Pi agent,
+the same way the other skills work.
 
 ## Attribution & license
 
