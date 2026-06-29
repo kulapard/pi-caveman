@@ -74,6 +74,20 @@ test("SKILL.md documents the in-place backup step", () => {
 	);
 });
 
+test("SKILL.md aborts on stale backup and restores only from the same invocation", () => {
+	const content = readFileSync(join(compressDir, "SKILL.md"), "utf8");
+	assert.match(
+		content,
+		/abort/i,
+		"SKILL.md must tell the agent to abort when a backup already exists",
+	);
+	assert.match(
+		content,
+		/stale|same invocation|created during the same invocation/i,
+		"SKILL.md must clarify that restoration is only from the same-invocation backup",
+	);
+});
+
 test("the Python-only SECURITY.md is gone", () => {
 	assert.ok(
 		!existsSync(join(compressDir, "SECURITY.md")),

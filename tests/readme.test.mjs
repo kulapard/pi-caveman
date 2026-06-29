@@ -20,6 +20,14 @@ test("README documents the confirmed `pi -e` install mechanism", () => {
 	);
 });
 
+test("README documents the GitHub install URL", () => {
+	const readme = readFileSync(readmePath, "utf8");
+	assert.ok(
+		readme.includes("pi install https://github.com/kulapard/pi-caveman"),
+		"README must document the pi install GitHub URL mechanism",
+	);
+});
+
 test("README lists the six intensity modes", () => {
 	const readme = readFileSync(readmePath, "utf8").toLowerCase();
 	for (const mode of ["lite", "full", "ultra", "wenyan"]) {

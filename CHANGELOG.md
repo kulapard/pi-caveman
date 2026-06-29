@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   https://github.com/kulapard/pi-caveman` as the primary direct-load method,
   keeping `pi -e` documented as a per-session fallback.
 
+### Added
+
+- Guard tests for `caveman-compress` backup rules, the GitHub install URL in
+  the root README, and the `caveman` skill's delegation to `caveman-commit` /
+  `caveman-review`.
+
 ## [0.4.0] - 2026-06-29
 
 ### Fixed
