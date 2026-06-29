@@ -25,6 +25,7 @@ test("ci workflow runs the test suite on push and pull_request", () => {
 	assert.match(ci, /pull_request:/, "must trigger on pull_request");
 	assert.match(ci, /npm ci/, "must install with npm ci");
 	assert.match(ci, /npm test/, "must run the test suite");
+	assert.match(ci, /node-version:\s*['"]?24['"]?/, "ci must use Node 24");
 });
 
 test("publish workflow exists", () => {
@@ -39,6 +40,7 @@ test("publish workflow triggers on version tags and publishes", () => {
 	assert.match(pub, /tags:/, "must trigger on tags");
 	assert.match(pub, /v\*/, "must match v* tags");
 	assert.match(pub, /npm publish/, "must run npm publish");
+	assert.match(pub, /node-version:\s*['"]?24['"]?/, "publish must use Node 24");
 });
 
 test("publish workflow uses Trusted Publishing, not tokens", () => {

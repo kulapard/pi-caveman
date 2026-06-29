@@ -428,7 +428,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 These are **not** code tasks — they happen on npmjs.com and the local machine, once, after the code above is merged.
 
-1. **Bootstrap publish (local, one-time):** from a clean checkout on the new name, `npm login` then `npm publish`. `publishConfig.access: public` makes it public. This creates `@kulapard/pi-caveman@0.1.0` so the package exists.
+1. **Bootstrap publish (local, one-time):** from a clean checkout on the new name, `npm login` then `npm publish`. `publishConfig.access: public` makes it public. This creates `@kulapard/pi-caveman@0.1.0` so the package exists. Note: the local working tree may contain dev artifacts (gitignored `__pycache__/*.pyc` files from running pytest) that a `files`-whitelisted directory ships wholesale, so run `git clean -fdx` (or publish from a fresh clone) before the bootstrap `npm publish` to keep the tarball clean — CI publishes from a clean checkout and is unaffected.
 2. **Enable Trusted Publishing:** npmjs.com → the package → Settings → Trusted Publisher → GitHub Actions → user `kulapard`, repo `pi-caveman`, workflow filename `publish.yml`, allowed action `npm publish`.
 3. *(optional hardening)* Settings → "Require two-factor authentication and disallow tokens".
 4. **Release flow thereafter:** bump `version` in `package.json` → commit → `git tag vX.Y.Z` → `git push --tags`. The `publish.yml` workflow publishes via OIDC; no local login needed.

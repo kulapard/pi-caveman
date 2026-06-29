@@ -28,7 +28,7 @@ test("package.json carries public publish config", () => {
 test("files whitelist ships the extension, skills, and agents", () => {
 	const pkg = readManifest();
 	assert.ok(Array.isArray(pkg.files), "files must be an array");
-	for (const entry of ["extensions", "skills", "agents"]) {
+	for (const entry of ["extensions", "skills", "agents", "AGENTS.md"]) {
 		assert.ok(
 			pkg.files.includes(entry),
 			`files whitelist must include "${entry}"`,
