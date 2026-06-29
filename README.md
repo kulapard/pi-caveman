@@ -12,8 +12,16 @@ plus a set of skills under `skills/`.
 
 ## Install
 
-pi-caveman is a **local package** — there is no published origin remote; you
-load it from a checkout on disk.
+pi-caveman is published to npm as
+[`@kulapard/pi-caveman`](https://www.npmjs.com/package/@kulapard/pi-caveman).
+Install it into a Pi setup with:
+
+```bash
+pi install @kulapard/pi-caveman
+```
+
+You can also load it straight from a checkout on disk (no install needed) — see
+the `pi -e` mechanism below.
 
 ### Load the extension directly (confirmed mechanism)
 
