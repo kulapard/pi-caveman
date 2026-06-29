@@ -99,8 +99,9 @@ Compressed:
 
 ## Boundaries
 
-- ONLY compress natural language files (.md, .txt, .typ, .typst, .tex, extensionless)
+- ONLY compress natural language files (.md, .txt, .rst, .typ, .typst, .tex, extensionless)
 - NEVER modify: .py, .js, .ts, .json, .yaml, .yml, .toml, .env, .lock, .css, .html, .xml, .sql, .sh
+- Skip files larger than ~500 KB (too big to rewrite safely in one pass)
 - If file has mixed content (prose + code), compress ONLY the prose sections
 - If unsure whether something is code or prose, leave it unchanged
 - Original file is backed up as FILE.original.md before overwriting
