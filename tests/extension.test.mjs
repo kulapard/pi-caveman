@@ -28,14 +28,14 @@ const ALL_MODES = [
 
 // --- normalizeMode mapping table ---
 
-test("normalizeMode: empty / whitespace -> full", () => {
+test("normalizeMode: empty / whitespace -> full", async () => {
 	assert.equal(normalizeMode(undefined), "full");
 	assert.equal(normalizeMode(""), "full");
 	assert.equal(normalizeMode("   "), "full");
 	assert.equal(normalizeMode("\t\n"), "full");
 });
 
-test("normalizeMode: off-like aliases -> off", () => {
+test("normalizeMode: off-like aliases -> off", async () => {
 	for (const alias of [
 		"off",
 		"stop",
@@ -50,20 +50,20 @@ test("normalizeMode: off-like aliases -> off", () => {
 	}
 });
 
-test("normalizeMode: wenyan / classical -> wenyan-full", () => {
+test("normalizeMode: wenyan / classical -> wenyan-full", async () => {
 	assert.equal(normalizeMode("wenyan"), "wenyan-full");
 	assert.equal(normalizeMode("classical"), "wenyan-full");
 	assert.equal(normalizeMode("  WENYAN "), "wenyan-full");
 });
 
-test("normalizeMode: each valid mode maps to itself", () => {
+test("normalizeMode: each valid mode maps to itself", async () => {
 	for (const mode of ALL_MODES) {
 		assert.equal(normalizeMode(mode), mode, `mode=${mode}`);
 		assert.equal(normalizeMode(mode.toUpperCase()), mode, `upper mode=${mode}`);
 	}
 });
 
-test("normalizeMode: garbage -> undefined", () => {
+test("normalizeMode: garbage -> undefined", async () => {
 	for (const junk of ["banana", "lite-mode", "wenyan-mega", "123", "fullish"]) {
 		assert.equal(
 			normalizeMode(junk),
@@ -73,7 +73,7 @@ test("normalizeMode: garbage -> undefined", () => {
 	}
 });
 
-test("VALID_MODES contains exactly the six intensity modes", () => {
+test("VALID_MODES contains exactly the six intensity modes", async () => {
 	assert.equal(VALID_MODES.size, 6);
 	for (const mode of ALL_MODES) {
 		assert.ok(VALID_MODES.has(mode), `VALID_MODES missing ${mode}`);
@@ -82,7 +82,7 @@ test("VALID_MODES contains exactly the six intensity modes", () => {
 
 // --- modeInstructions ---
 
-test("modeInstructions: contains the active banner and per-mode line for every mode", () => {
+test("modeInstructions: contains the active banner and per-mode line for every mode", async () => {
 	const perModeNeedle = {
 		lite: "Intensity: lite.",
 		full: "Intensity: full.",
@@ -107,7 +107,7 @@ test("modeInstructions: contains the active banner and per-mode line for every m
 
 // --- activation / deactivation regexes ---
 
-test("ACTIVATION_RE matches documented activation phrases", () => {
+test("ACTIVATION_RE matches documented activation phrases", async () => {
 	for (const phrase of [
 		"caveman mode",
 		"please use caveman mode now",
@@ -122,7 +122,7 @@ test("ACTIVATION_RE matches documented activation phrases", () => {
 	}
 });
 
-test("ACTIVATION_RE does not match innocuous text", () => {
+test("ACTIVATION_RE does not match innocuous text", async () => {
 	for (const phrase of [
 		"let's talk about the cavemen exhibit",
 		"the token bucket algorithm",
@@ -131,11 +131,15 @@ test("ACTIVATION_RE does not match innocuous text", () => {
 	]) {
 		// "less tokens"/"fewer tokens"/"save tokens" are the only token phrases;
 		// none of the above contain an activation trigger as a whole phrase.
-		assert.doesNotMatch(phrase, ACTIVATION_RE, `should NOT activate: ${phrase}`);
+		assert.doesNotMatch(
+			phrase,
+			ACTIVATION_RE,
+			`should NOT activate: ${phrase}`,
+		);
 	}
 });
 
-test("DEACTIVATION_RE matches documented deactivation phrases", () => {
+test("DEACTIVATION_RE matches documented deactivation phrases", async () => {
 	for (const phrase of [
 		"stop caveman",
 		"please stop caveman now",
@@ -146,7 +150,7 @@ test("DEACTIVATION_RE matches documented deactivation phrases", () => {
 	}
 });
 
-test("DEACTIVATION_RE does not match innocuous text", () => {
+test("DEACTIVATION_RE does not match innocuous text", async () => {
 	for (const phrase of [
 		"the caveman is friendly",
 		"this is a normal day",
@@ -213,7 +217,7 @@ function makeFakeCtx(branch = []) {
 	};
 }
 
-test("before_agent_start: returns undefined when mode off", () => {
+test("before_agent_start: returns undefined when mode off", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const handler = fake.events.get("before_agent_start");
@@ -223,14 +227,14 @@ test("before_agent_start: returns undefined when mode off", () => {
 	assert.equal(result, undefined);
 });
 
-test("before_agent_start: appends modeInstructions when a mode is active", () => {
+test("before_agent_start: appends modeInstructions when a mode is active", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
 
 	// activate ultra via the /caveman command handler
 	const caveman = fake.commands.get("caveman");
-	caveman.handler("ultra", ctx);
+	await caveman.handler("ultra", ctx);
 
 	const handler = fake.events.get("before_agent_start");
 	const result = handler({ systemPrompt: "SYS" });
@@ -240,7 +244,7 @@ test("before_agent_start: appends modeInstructions when a mode is active", () =>
 	assert.ok(result.systemPrompt.includes("Intensity: ultra."));
 });
 
-test("session_start: restores the LAST caveman-mode entry from the branch", () => {
+test("session_start: restores the LAST caveman-mode entry from the branch", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const branch = [
@@ -261,7 +265,7 @@ test("session_start: restores the LAST caveman-mode entry from the branch", () =
 	assert.deepEqual(statuses.at(-1), { key: "caveman", value: "caveman:ultra" });
 });
 
-test("session_start: resets to off when no caveman-mode entry exists", () => {
+test("session_start: resets to off when no caveman-mode entry exists", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx } = makeFakeCtx([
@@ -273,12 +277,12 @@ test("session_start: resets to off when no caveman-mode entry exists", () => {
 	assert.equal(beforeStart({ systemPrompt: "SYS" }), undefined);
 });
 
-test("/caveman: persists a valid mode and appends a session entry", () => {
+test("/caveman: persists a valid mode and appends a session entry", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx, notifications } = makeFakeCtx();
 	const caveman = fake.commands.get("caveman");
-	caveman.handler("wenyan", ctx);
+	await caveman.handler("wenyan", ctx);
 
 	assert.equal(fake.appended.length, 1);
 	assert.equal(fake.appended[0].customType, "caveman-mode");
@@ -286,45 +290,49 @@ test("/caveman: persists a valid mode and appends a session entry", () => {
 	assert.equal(notifications.at(-1).level, "info");
 });
 
-test("/caveman: notifies an error on an invalid mode and persists nothing", () => {
+test("/caveman: notifies an error on an invalid mode and persists nothing", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx, notifications } = makeFakeCtx();
 	const caveman = fake.commands.get("caveman");
-	caveman.handler("banana", ctx);
+	await caveman.handler("banana", ctx);
 
 	assert.equal(fake.appended.length, 0, "invalid mode must not persist");
 	assert.equal(notifications.at(-1).level, "error");
 	assert.match(notifications.at(-1).message, /banana/);
 });
 
-test("/caveman-compress: notifies an error when called with an empty arg", () => {
+test("/caveman-compress: notifies an error when called with an empty arg", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx, notifications } = makeFakeCtx();
 	const compress = fake.commands.get("caveman-compress");
-	compress.handler("", ctx);
+	await compress.handler("", ctx);
 
 	assert.equal(notifications.at(-1).level, "error");
 	assert.match(notifications.at(-1).message, /Usage: \/caveman-compress/);
-	assert.equal(fake.userMessages.length, 0, "must not dispatch a skill message");
+	assert.equal(
+		fake.userMessages.length,
+		0,
+		"must not dispatch a skill message",
+	);
 });
 
-test("/caveman-compress: dispatches the skill message for a valid target", () => {
+test("/caveman-compress: dispatches the skill message for a valid target", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
 	const compress = fake.commands.get("caveman-compress");
-	compress.handler("docs/notes.md", ctx);
+	await compress.handler("docs/notes.md", ctx);
 	assert.equal(fake.userMessages.length, 1);
 	assert.match(fake.userMessages[0], /caveman-compress docs\/notes\.md/);
 });
 
-test("/caveman-help: sends the HELP_TEXT card with customType caveman-help", () => {
+test("/caveman-help: sends the HELP_TEXT card with customType caveman-help", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const help = fake.commands.get("caveman-help");
-	help.handler();
+	await help.handler();
 
 	assert.equal(fake.messages.length, 1);
 	assert.equal(fake.messages[0].customType, "caveman-help");
@@ -333,11 +341,11 @@ test("/caveman-help: sends the HELP_TEXT card with customType caveman-help", () 
 	assert.match(fake.messages[0].content, /\/caveman-help/);
 });
 
-test("/caveman-commit: dispatches /skill:caveman-commit with the given notes", () => {
+test("/caveman-commit: dispatches /skill:caveman-commit with the given notes", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const commit = fake.commands.get("caveman-commit");
-	commit.handler("only the auth module");
+	await commit.handler("only the auth module");
 
 	assert.equal(fake.userMessages.length, 1);
 	assert.match(
@@ -346,53 +354,56 @@ test("/caveman-commit: dispatches /skill:caveman-commit with the given notes", (
 	);
 });
 
-test("/caveman-commit: falls back to the default task on an empty arg", () => {
+test("/caveman-commit: falls back to the default task on an empty arg", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const commit = fake.commands.get("caveman-commit");
-	commit.handler("");
+	await commit.handler("");
 
 	assert.equal(fake.userMessages.length, 1);
 	assert.match(fake.userMessages[0], /^\/skill:caveman-commit /);
 	assert.match(fake.userMessages[0], /Generate a commit message/);
 });
 
-test("/caveman-review: dispatches /skill:caveman-review with the given scope", () => {
+test("/caveman-review: dispatches /skill:caveman-review with the given scope", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const review = fake.commands.get("caveman-review");
-	review.handler("the diff in src/");
+	await review.handler("the diff in src/");
 
 	assert.equal(fake.userMessages.length, 1);
-	assert.match(fake.userMessages[0], /^\/skill:caveman-review the diff in src\/$/);
+	assert.match(
+		fake.userMessages[0],
+		/^\/skill:caveman-review the diff in src\/$/,
+	);
 });
 
-test("/caveman-review: falls back to the default task on an empty arg", () => {
+test("/caveman-review: falls back to the default task on an empty arg", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const review = fake.commands.get("caveman-review");
-	review.handler("");
+	await review.handler("");
 
 	assert.equal(fake.userMessages.length, 1);
 	assert.match(fake.userMessages[0], /^\/skill:caveman-review /);
 	assert.match(fake.userMessages[0], /Review current repository changes/);
 });
 
-test("/caveman-stats: dispatches /skill:caveman-stats with the given arg", () => {
+test("/caveman-stats: dispatches /skill:caveman-stats with the given arg", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const stats = fake.commands.get("caveman-stats");
-	stats.handler("last 3 turns");
+	await stats.handler("last 3 turns");
 
 	assert.equal(fake.userMessages.length, 1);
 	assert.match(fake.userMessages[0], /^\/skill:caveman-stats last 3 turns$/);
 });
 
-test("/caveman-stats: falls back to the default prompt on an empty arg", () => {
+test("/caveman-stats: falls back to the default prompt on an empty arg", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const stats = fake.commands.get("caveman-stats");
-	stats.handler("");
+	await stats.handler("");
 
 	assert.equal(fake.userMessages.length, 1);
 	assert.match(fake.userMessages[0], /^\/skill:caveman-stats /);
@@ -401,7 +412,7 @@ test("/caveman-stats: falls back to the default prompt on an empty arg", () => {
 
 // --- getArgumentCompletions for /caveman ---
 
-test("getArgumentCompletions: filters mode list by prefix", () => {
+test("getArgumentCompletions: filters mode list by prefix", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const caveman = fake.commands.get("caveman");
@@ -415,7 +426,7 @@ test("getArgumentCompletions: filters mode list by prefix", () => {
 	for (const item of items) assert.equal(item.label, item.value);
 });
 
-test("getArgumentCompletions: empty prefix returns the full list", () => {
+test("getArgumentCompletions: empty prefix returns the full list", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const caveman = fake.commands.get("caveman");
@@ -425,7 +436,7 @@ test("getArgumentCompletions: empty prefix returns the full list", () => {
 	assert.ok(items.some((i) => i.value === "ultra"));
 });
 
-test("getArgumentCompletions: no match returns null (not an empty array)", () => {
+test("getArgumentCompletions: no match returns null (not an empty array)", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const caveman = fake.commands.get("caveman");
@@ -434,34 +445,37 @@ test("getArgumentCompletions: no match returns null (not an empty array)", () =>
 
 // --- statusline clear when switching to off ---
 
-test("statusline: clears (undefined) when /caveman off is issued", () => {
+test("statusline: clears (undefined) when /caveman off is issued", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx, statuses } = makeFakeCtx();
 	const caveman = fake.commands.get("caveman");
-	caveman.handler("ultra", ctx);
+	await caveman.handler("ultra", ctx);
 	assert.deepEqual(statuses.at(-1), { key: "caveman", value: "caveman:ultra" });
 
-	caveman.handler("off", ctx);
+	await caveman.handler("off", ctx);
 	assert.deepEqual(statuses.at(-1), { key: "caveman", value: undefined });
 });
 
 // --- pi.on("input") activation / deactivation handler ---
 
-test("input handler: activation phrase from a user source persists full", () => {
+test("input handler: activation phrase from a user source persists full", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
 	const input = fake.events.get("input");
 	assert.ok(input, "input handler must be registered");
 
-	const result = input({ text: "please use caveman mode", source: "user" }, ctx);
+	const result = input(
+		{ text: "please use caveman mode", source: "user" },
+		ctx,
+	);
 	assert.deepEqual(result, { action: "continue" });
 	assert.equal(fake.appended.length, 1);
 	assert.equal(fake.appended[0].data.mode, "full");
 });
 
-test("input handler: deactivation phrase persists off", () => {
+test("input handler: deactivation phrase persists off", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
@@ -475,7 +489,7 @@ test("input handler: deactivation phrase persists off", () => {
 	assert.equal(fake.appended.at(-1).data.mode, "off");
 });
 
-test("input handler: source 'extension' is ignored (self-echo guard)", () => {
+test("input handler: source 'extension' is ignored (self-echo guard)", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
@@ -489,7 +503,7 @@ test("input handler: source 'extension' is ignored (self-echo guard)", () => {
 	assert.equal(fake.appended.length, 0, "self-echo must not persist a mode");
 });
 
-test("input handler: activation while already in a non-off mode does not overwrite", () => {
+test("input handler: activation while already in a non-off mode does not overwrite", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
@@ -497,7 +511,7 @@ test("input handler: activation while already in a non-off mode does not overwri
 	const input = fake.events.get("input");
 
 	// Already in ultra via the command.
-	caveman.handler("ultra", ctx);
+	await caveman.handler("ultra", ctx);
 	assert.equal(fake.appended.length, 1);
 	assert.equal(fake.appended[0].data.mode, "ultra");
 
@@ -510,7 +524,7 @@ test("input handler: activation while already in a non-off mode does not overwri
 	assert.ok(r.systemPrompt.includes("Intensity: ultra."), "mode stays ultra");
 });
 
-test("input handler: deactivation while already off does not persist a redundant entry", () => {
+test("input handler: deactivation while already off does not persist a redundant entry", async () => {
 	const fake = makeFakePi();
 	cavemanExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
@@ -527,7 +541,7 @@ test("input handler: deactivation while already off does not persist a redundant
 
 // --- type-only SDK import invariant ---
 
-test("SDK import in caveman.ts is type-only (erasable by strip-types)", () => {
+test("SDK import in caveman.ts is type-only (erasable by strip-types)", async () => {
 	const src = readFileSync(join(repoRoot, "extensions/caveman.ts"), "utf8");
 	assert.match(
 		src,
@@ -542,8 +556,11 @@ test("SDK import in caveman.ts is type-only (erasable by strip-types)", () => {
 	);
 });
 
-test("SDK import in caveman-core.ts (if any) is type-only", () => {
-	const src = readFileSync(join(repoRoot, "extensions/caveman-core.ts"), "utf8");
+test("SDK import in caveman-core.ts (if any) is type-only", async () => {
+	const src = readFileSync(
+		join(repoRoot, "extensions/caveman-core.ts"),
+		"utf8",
+	);
 	const importsSdk = /@earendil-works\/pi-coding-agent/.test(src);
 	if (importsSdk) {
 		assert.doesNotMatch(

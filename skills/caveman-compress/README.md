@@ -22,10 +22,10 @@ The agent reads its memory file (`AGENTS.md` / `CLAUDE.md`) on every session sta
 
 ```
 AGENTS.md          ← compressed (the agent reads this — fewer tokens every session)
-AGENTS.original.md ← human-readable backup (you edit this)
+AGENTS.original.md ← human-readable backup (snapshot taken at first compression)
 ```
 
-Original never lost. You can read and edit `.original.md`. Run skill again to re-compress after edits.
+Original never lost — first compression writes a verbatim backup. To edit and re-compress, **edit `AGENTS.md` itself**, then delete or rename the existing `AGENTS.original.md` so the next `/caveman-compress` can create a fresh backup.
 
 ## Benchmarks
 
@@ -81,6 +81,7 @@ its own model and file tools — there is no separate tool or language to instal
 ```
 
 Examples:
+
 ```
 /caveman-compress AGENTS.md
 /caveman-compress CLAUDE.md
@@ -96,6 +97,7 @@ Examples:
 | Extensionless natural language | ✅ Yes |
 | `.py`, `.js`, `.ts`, `.json`, `.yaml` | ❌ Skip (code/config) |
 | `*.original.md` | ❌ Skip (backup files) |
+| `*.original` (extensionless) | ❌ Skip (backup files) |
 
 ## How It Work
 
@@ -104,15 +106,20 @@ Examples:
         ↓
 agent detects file type      (prose? else skip)
         ↓
-agent backs up original  →  AGENTS.original.md   (verbatim, never overwritten)
+agent checks for existing backup  →  abort if stale `.original` exists
+        ↓
+agent backs up original once  →  AGENTS.original.md   (verbatim snapshot)
         ↓
 agent rewrites prose to caveman, code/URLs/paths left exact
         ↓
 agent self-validates: protected tokens byte-identical to original
         ↓
-if a protected token changed: fix it, or restore from backup and report
+if a protected token changed: fix it, or restore from the just-created backup and report
         ↓
 write compressed  →  AGENTS.md
+
+To re-compress, edit `AGENTS.md`, then remove/rename the old `AGENTS.original.md`
+so the skill can create a fresh snapshot.
 ```
 
 The agent does this with its own model and file tools — no external CLI, no separate runtime.

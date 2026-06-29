@@ -21,12 +21,12 @@ Compress natural language files (`AGENTS.md`, `CLAUDE.md`, todos, preferences) i
 
 You (the Pi agent) perform the compression directly — there is no separate tool to run. Given `/caveman-compress <filepath>`:
 
-1. **Skip backups.** If the path ends in `.original.<ext>` (e.g. `AGENTS.original.md`), stop — never compress a backup file.
+1. **Skip backups.** If the path ends in `.original.<ext>` or, for extensionless files, in `.original` (e.g. `AGENTS.original.md`, `NOTES.original`), stop — never compress a backup file.
 2. **Check it is compressible** per **Boundaries** below: prose files (`.md`, `.txt`, `.rst`, `.typ`, `.typst`, `.tex`, or extensionless natural language). If it is code/config (`.py`, `.js`, `.ts`, `.json`, `.yaml`, …) or larger than ~500 KB, report it is out of scope and stop.
 3. **Read** the file's full contents.
-4. **Back up the original.** Write a verbatim copy to `<filename>.original.<ext>` (e.g. `AGENTS.md` → `AGENTS.original.md`), **only if that backup does not already exist** — never overwrite an existing `.original` backup.
+4. **Back up the original.** If a `.original`/`.original.<ext>` backup already exists, **abort** and tell the user to remove or rename the stale backup before re-compressing. Otherwise write a verbatim copy to `<filename>.original.<ext>` (or `<filename>.original` for extensionless files) before any rewrite.
 5. **Rewrite** the file in place, applying the **Compression Rules** below. Treat code blocks, inline code, URLs, paths, commands, headings, and table structure as read-only regions.
-6. **Self-validate** against the contents you read in step 3: every protected token — fenced and inline code, URLs, file paths, heading text, table structure, dates/version numbers — must be byte-for-byte identical. If any changed, fix just that region; if you cannot make it identical, restore the file from the `.original` backup and report the failure rather than leave a corrupted file.
+6. **Self-validate** against the contents you read in step 3: every protected token — fenced and inline code, URLs, file paths, heading text, table structure, dates/version numbers — must be byte-for-byte identical. If any changed, fix just that region; if you cannot make it identical, restore the file from the backup you wrote in step 4 and report the failure rather than leave a corrupted file.
 7. **Report** the result: bytes before/after and the approximate reduction.
 
 Only the rewrite needs the model (you); detection, backup, and validation are mechanical.
@@ -34,6 +34,7 @@ Only the rewrite needs the model (you); detection, backup, and validation are me
 ## Compression Rules
 
 ### Remove
+
 - Articles: a, an, the
 - Filler: just, really, basically, actually, simply, essentially, generally
 - Pleasantries: "sure", "certainly", "of course", "happy to", "I'd recommend"
@@ -42,6 +43,7 @@ Only the rewrite needs the model (you); detection, backup, and validation are me
 - Connective fluff: "however", "furthermore", "additionally", "in addition"
 
 ### Preserve EXACTLY (never modify)
+
 - Code blocks (fenced ``` and indented)
 - Inline code (`backtick content`)
 - URLs and links (full URLs, markdown links)
@@ -53,6 +55,7 @@ Only the rewrite needs the model (you); detection, backup, and validation are me
 - Environment variables (`$HOME`, `NODE_ENV`)
 
 ### Preserve Structure
+
 - All markdown headings (keep exact heading text, compress body below)
 - Bullet point hierarchy (keep nesting level)
 - Numbered lists (keep numbering)
@@ -60,6 +63,7 @@ Only the rewrite needs the model (you); detection, backup, and validation are me
 - Frontmatter/YAML headers in markdown files
 
 ### Compress
+
 - Use short synonyms: "big" not "extensive", "fix" not "implement a solution for", "use" not "utilize"
 - Fragments OK: "Run tests before commit" not "You should always run tests before committing"
 - Drop "you should", "make sure to", "remember to" — just state the action
@@ -69,6 +73,7 @@ Only the rewrite needs the model (you); detection, backup, and validation are me
 CRITICAL RULE:
 Anything inside ``` ... ``` must be copied EXACTLY.
 Do not:
+
 - remove comments
 - remove spacing
 - reorder lines
@@ -79,6 +84,7 @@ Inline code (`...`) must be preserved EXACTLY.
 Do not modify anything inside backticks.
 
 If file contains code blocks:
+
 - Treat code blocks as read-only regions
 - Only compress text outside them
 - Do not merge sections around code

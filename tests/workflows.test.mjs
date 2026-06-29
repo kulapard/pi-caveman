@@ -39,7 +39,7 @@ test("publish workflow triggers on version tags and publishes", () => {
 	const pub = readWorkflow("publish.yml");
 	assert.match(pub, /tags:/, "must trigger on tags");
 	assert.match(pub, /v\[0-9\]\*/, "must trigger on semver-style v tags");
-	assert.match(pub, /npm publish/, "must run npm publish");
+	assert.match(pub, /run:\s*npm publish\s*$/, "must run npm publish");
 	assert.match(pub, /node-version:\s*['"]?24['"]?/, "publish must use Node 24");
 	// Load-bearing OIDC publish steps — deleting either silently breaks publish.
 	assert.match(
