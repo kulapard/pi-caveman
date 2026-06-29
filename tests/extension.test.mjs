@@ -13,7 +13,10 @@ import {
 	ACTIVATION_RE,
 	DEACTIVATION_RE,
 } from "../extensions/caveman-core.ts";
-import { loadProjectMode, saveProjectMode } from "../extensions/caveman-state.ts";
+import {
+	loadProjectMode,
+	saveProjectMode,
+} from "../extensions/caveman-state.ts";
 import cavemanExtension from "../extensions/caveman.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -590,7 +593,11 @@ test("session_start: session entry overrides project state", async () => {
 
 test("loadProjectMode: returns undefined for missing or invalid state", () => {
 	const tmp = mkdtempSync(join(tmpdir(), "pi-caveman-"));
-	assert.equal(loadProjectMode(tmp), undefined, "missing state returns undefined");
+	assert.equal(
+		loadProjectMode(tmp),
+		undefined,
+		"missing state returns undefined",
+	);
 	rmSync(tmp, { recursive: true, force: true });
 });
 

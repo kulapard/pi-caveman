@@ -32,7 +32,13 @@ export default function cavemanExtension(pi: ExtensionAPI) {
 
 	function setStatus(ctx?: ExtensionContext) {
 		if (!ctx?.hasUI) return;
-		ctx.ui.setStatus("caveman", mode === "off" ? undefined : `caveman:${mode}`);
+		const usage = ctx.getContextUsage?.();
+		const suffix =
+			usage?.percent != null ? ` ctx:${Math.round(usage.percent)}%` : "";
+		ctx.ui.setStatus(
+			"caveman",
+			mode === "off" ? undefined : `caveman:${mode}${suffix}`,
+		);
 	}
 
 	function persistMode(nextMode: StoredMode, ctx?: ExtensionContext) {
@@ -150,6 +156,10 @@ export default function cavemanExtension(pi: ExtensionAPI) {
 			}
 		}
 		return { action: "continue" as const };
+	});
+
+	pi.on("turn_end", (_event, ctx) => {
+		setStatus(ctx);
 	});
 
 	pi.on("before_agent_start", (event) => {
