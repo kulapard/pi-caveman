@@ -177,7 +177,7 @@ session ends.
 | Mode | Command | Effect |
 |------|---------|--------|
 | **low** | `/laconic low` | Drop filler. Keep sentence structure. |
-| **medium** | `/laconic` | Drop articles, filler, pleasantries, hedging. Fragments OK. Default. |
+| **medium** | `/laconic` (default) | Drop articles, filler, pleasantries, hedging. Fragments OK. Default. |
 | **high** | `/laconic high` | Extreme compression. Bare fragments. Abbreviate prose words; arrows (X → Y). |
 
 `/laconic off` disables terse mode.

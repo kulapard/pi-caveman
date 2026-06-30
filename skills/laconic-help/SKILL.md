@@ -15,7 +15,7 @@ Display this reference card when invoked. One-shot — do NOT change mode, write
 | Mode | Trigger | What change |
 |------|---------|-------------|
 | **Low** | `/laconic low` | Drop filler. Keep sentence structure. |
-| **Medium** | `/laconic` | Drop articles, filler, pleasantries, hedging. Fragments OK. Default. |
+| **Medium** | `/laconic` (default) | Drop articles, filler, pleasantries, hedging. Fragments OK. Default. |
 | **High** | `/laconic high` | Extreme compression. Bare fragments. Abbreviate prose words; arrows (X → Y). |
 
 Mode stick until changed or session end.
