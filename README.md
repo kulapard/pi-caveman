@@ -5,7 +5,7 @@
 <h1 align="center">pi-laconic</h1>
 
 <p align="center">
-  <strong>maximum meaning · fewest words</strong>
+  <strong>Philip: “If I invade…” · Sparta: “If.”</strong>
 </p>
 
 <p align="center">
@@ -18,33 +18,20 @@
 
 ---
 
-A [Pi](https://github.com/earendil-works/pi) terse-output extension
-inspired by [caveman](https://github.com/JuliusBrussee/caveman). It makes the agent
-answer like a Spartan — compressed, laconic prose (drop articles, filler, and
-hedging; fragments over sentences) that cuts output tokens by roughly 65–75%
-**while keeping maximum technical accuracy**: code, commands, API names, file paths,
-and exact error strings are always preserved verbatim.
-
-pi-laconic ships as a Pi package: a single extension (`extensions/laconic.ts`)
-plus a set of skills under `skills/`.
-
-> **Note:** the 65–75% token-savings figure is a model-driven estimate, not a
-> tracked meter. Pi does not expose per-turn token counts, so `/laconic-stats`
-> estimates on demand rather than reading a log.
+A [Pi](https://github.com/earendil-works/pi) package that makes agents answer in
+laconic Spartan style: short, precise, low-filler output. It cuts roughly 65–75%
+of output tokens while preserving code, commands, API names, file paths, and exact
+error strings verbatim.
 
 ## Why "laconic"?
 
-*Laconic* comes from Laconia, the region of ancient Sparta. Spartans were
-renowned for saying the most with the fewest words — a style so distinctive the
-word for it bears their name.
+Laconia was Sparta's region. Spartans were famous for saying little and meaning
+much.
 
-The textbook example: Philip II of Macedon warned Sparta, "If I invade Laconia,
-I will raze your city to the ground." The Spartans answered with a single word —
-**"If."** Philip never invaded.
+Philip II threatened: "If I invade Laconia, I will raze your city." Sparta
+answered: **"If."**
 
-That is the whole idea. `pi-laconic` makes your agent answer like a Spartan: maximum
-meaning, no wasted words. Code, commands, and exact strings stay verbatim — only
-the fluff is cut.
+`pi-laconic` does the same for agent output: keep substance, cut fluff.
 
 ## Examples
 

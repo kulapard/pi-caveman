@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reworked README header to match the centered upstream `caveman` layout:
   icon, title, tagline, badges, and quick links.
+- Tightened the README intro and `Why "laconic"?` section to the core
+  explanation.
 - Added `assets` to the npm package files whitelist so the README logo ships
   with the package.
 
