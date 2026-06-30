@@ -1,0 +1,117 @@
+---
+name: laconic-compress
+description: >
+  Compress natural language memory files (AGENTS.md, CLAUDE.md, todos, preferences) into laconic
+  format to save input tokens. Preserves all technical substance, code, URLs, and structure.
+  Compressed version overwrites the original file. Human-readable backup saved as FILE.original.<ext> (same extension as the source).
+  Trigger: /laconic-compress FILEPATH [--force]
+---
+
+# Laconic Compress
+
+## Purpose
+
+Compress natural language files (`AGENTS.md`, `CLAUDE.md`, todos, preferences) into laconic-speak to reduce input tokens. Compressed version overwrites original. Human-readable backup saved as `<filename>.original.<ext>` (same extension as the source, e.g. `AGENTS.md` → `AGENTS.original.md`, `notes.txt` → `notes.original.txt`).
+
+## Trigger
+
+`/laconic-compress <filepath>` or when user asks to compress a memory file. Append `--force` to overwrite an existing `.original.<ext>` backup instead of aborting.
+
+## Process
+
+You (the Pi agent) perform the compression directly — there is no separate tool to run. Given `/laconic-compress <filepath>` (optionally with `--force`):
+
+1. **Skip backups.** If the path ends in `.original.<ext>` or, for extensionless files, in `.original` (e.g. `AGENTS.original.md`, `NOTES.original`), stop — never compress a backup file.
+2. **Check it is compressible** per **Boundaries** below: prose files (`.md`, `.txt`, `.rst`, `.typ`, `.typst`, `.tex`, or extensionless natural language). If it is code/config (`.py`, `.js`, `.ts`, `.json`, `.yaml`, …) or larger than ~500 KB, report it is out of scope and stop.
+3. **Read** the file's full contents.
+4. **Back up the original.** If a `.original`/`.original.<ext>` backup already exists:
+   - Without `--force`, **abort** and tell the user to remove or rename the stale backup before re-compressing.
+   - With `--force`, overwrite the existing backup with a verbatim copy of the current source before any rewrite.
+   If no backup exists, write a verbatim copy to `<filename>.original.<ext>` (or `<filename>.original` for extensionless files) before any rewrite.
+5. **Rewrite** the file in place, applying the **Compression Rules** below. Treat code blocks, inline code, URLs, paths, commands, headings, and table structure as read-only regions.
+6. **Self-validate** against the contents you read in step 3: every protected token — fenced and inline code, URLs, file paths, heading text, table structure, dates/version numbers — must be byte-for-byte identical. If any changed, fix just that region; if you cannot make it identical, restore the file from the backup you wrote in step 4 and report the failure rather than leave a corrupted file.
+7. **Report** the result: bytes before/after and the approximate reduction.
+
+Only the rewrite needs the model (you); detection, backup, and validation are mechanical.
+
+## Compression Rules
+
+### Remove
+
+- Articles: a, an, the
+- Filler: just, really, basically, actually, simply, essentially, generally
+- Pleasantries: "sure", "certainly", "of course", "happy to", "I'd recommend"
+- Hedging: "it might be worth", "you could consider", "it would be good to"
+- Redundant phrasing: "in order to" → "to", "make sure to" → "ensure", "the reason is because" → "because"
+- Connective fluff: "however", "furthermore", "additionally", "in addition"
+
+### Preserve EXACTLY (never modify)
+
+- Code blocks (fenced ``` and indented)
+- Inline code (`backtick content`)
+- URLs and links (full URLs, markdown links)
+- File paths (`/src/components/...`, `./config.yaml`)
+- Commands (`npm install`, `git commit`, `docker build`)
+- Technical terms (library names, API names, protocols, algorithms)
+- Proper nouns (project names, people, companies)
+- Dates, version numbers, numeric values
+- Environment variables (`$HOME`, `NODE_ENV`)
+
+### Preserve Structure
+
+- All markdown headings (keep exact heading text, compress body below)
+- Bullet point hierarchy (keep nesting level)
+- Numbered lists (keep numbering)
+- Tables (compress cell text, keep structure)
+- Frontmatter/YAML headers in markdown files
+
+### Compress
+
+- Use short synonyms: "big" not "extensive", "fix" not "implement a solution for", "use" not "utilize"
+- Fragments OK: "Run tests before commit" not "You should always run tests before committing"
+- Drop "you should", "make sure to", "remember to" — just state the action
+- Merge redundant bullets that say the same thing differently
+- Keep one example where multiple examples show the same pattern
+
+CRITICAL RULE:
+Anything inside ``` ... ``` must be copied EXACTLY.
+Do not:
+
+- remove comments
+- remove spacing
+- reorder lines
+- shorten commands
+- simplify anything
+
+Inline code (`...`) must be preserved EXACTLY.
+Do not modify anything inside backticks.
+
+If file contains code blocks:
+
+- Treat code blocks as read-only regions
+- Only compress text outside them
+- Do not merge sections around code
+
+## Pattern
+
+Original:
+> You should always make sure to run the test suite before pushing any changes to the main branch. This is important because it helps catch bugs early and prevents broken builds from being deployed to production.
+
+Compressed:
+> Run tests before push to main. Catch bugs early, prevent broken prod deploys.
+
+Original:
+> The application uses a microservices architecture with the following components. The API gateway handles all incoming requests and routes them to the appropriate service. The authentication service is responsible for managing user sessions and JWT tokens.
+
+Compressed:
+> Microservices architecture. API gateway route all requests to services. Auth service manage user sessions + JWT tokens.
+
+## Boundaries
+
+- ONLY compress natural language files (.md, .txt, .rst, .typ, .typst, .tex, extensionless)
+- NEVER modify: .py, .js, .ts, .json, .yaml, .yml, .toml, .env, .lock, .css, .html, .xml, .sql, .sh
+- Skip files larger than ~500 KB (too big to rewrite safely in one pass)
+- If file has mixed content (prose + code), compress ONLY the prose sections
+- If unsure whether something is code or prose, leave it unchanged
+- Original file is backed up as FILE.original.<ext> (same extension as the source) before overwriting
+- Never compress a FILE.original.<ext> backup (skip it)

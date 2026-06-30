@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Publish the package to npm as `@kulapard/pi-caveman` and auto-publish from CI via npm Trusted Publishing (OIDC), with no stored tokens.
+**Goal:** Publish the package to npm as `@kulapard/pi-laconic` and auto-publish from CI via npm Trusted Publishing (OIDC), with no stored tokens.
 
 **Architecture:** Rename the package to a scoped name and add publish config to `package.json`. Add two GitHub Actions workflows: `ci.yml` (test on push/PR) and `publish.yml` (test + `npm publish` on `v*` tags, authenticating via OIDC). Lock the publish invariants with string-assertion unit tests that match the repo's existing `manifest`/`readme` test style (no new dependencies).
 
@@ -10,8 +10,8 @@
 
 ## Global Constraints
 
-- Package name: `@kulapard/pi-caveman` (bare `pi-caveman` is owned by another user).
-- Ship TypeScript source — **no** compile/`dist` step. The `pi` block stays `"extensions": ["./extensions/caveman.ts"]`, `"skills": ["./skills"]`.
+- Package name: `@kulapard/pi-laconic` (bare `pi-laconic` is owned by another user).
+- Ship TypeScript source — **no** compile/`dist` step. The `pi` block stays `"extensions": ["./extensions/laconic.ts"]`, `"skills": ["./skills"]`.
 - Publishes must be public: `publishConfig.access` = `"public"`.
 - Trusted Publishing: workflow needs `id-token: write`; **no** `NODE_AUTH_TOKEN`, **no** `secrets.NPM_TOKEN`, **no** `--provenance` flag (provenance is automatic). Requires npm CLI >= 11.5.1, Node >= 22.14 — CI uses Node 24 plus `npm install -g npm@latest`.
 - Publish tag trigger is `v[0-9]*`; the published tarball excludes dev test files via `files` `!` negations (see Task 1). (Both refined post-review — see "Post-review revisions" at the end.)
@@ -31,7 +31,7 @@
 
 ---
 
-### Task 1: Rename package to `@kulapard/pi-caveman` + add publish config
+### Task 1: Rename package to `@kulapard/pi-laconic` + add publish config
 
 **Files:**
 - Modify: `tests/manifest.test.mjs:15-20` (name assertion + new publish-config asserts)
@@ -40,7 +40,7 @@
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `package.json` with `name` = `"@kulapard/pi-caveman"`, `publishConfig.access` = `"public"`, `files` = `["extensions","skills","agents","AGENTS.md"]`, `scripts.prepublishOnly` = `"npm test"`. Later tasks rely on these exact values.
+- Produces: `package.json` with `name` = `"@kulapard/pi-laconic"`, `publishConfig.access` = `"public"`, `files` = `["extensions","skills","agents","AGENTS.md"]`, `scripts.prepublishOnly` = `"npm test"`. Later tasks rely on these exact values.
 
 - [ ] **Step 1: Update the failing assertions in `tests/manifest.test.mjs`**
 
@@ -49,7 +49,7 @@ Replace the first test (currently lines 15-20) with:
 ```javascript
 test("package.json is valid JSON and identifies the package", () => {
 	const pkg = readManifest();
-	assert.equal(pkg.name, "@kulapard/pi-caveman");
+	assert.equal(pkg.name, "@kulapard/pi-laconic");
 	assert.equal(pkg.version, "0.1.0");
 	assert.equal(pkg.license, "MIT");
 });
@@ -84,7 +84,7 @@ test("prepublishOnly gates publish on the test suite", () => {
 - [ ] **Step 2: Run the manifest tests to verify they fail**
 
 Run: `node --experimental-strip-types --test tests/manifest.test.mjs`
-Expected: FAIL — name assertion expects `@kulapard/pi-caveman` but gets `pi-caveman`; `publishConfig`/`files`/`prepublishOnly` asserts fail (fields absent).
+Expected: FAIL — name assertion expects `@kulapard/pi-laconic` but gets `pi-laconic`; `publishConfig`/`files`/`prepublishOnly` asserts fail (fields absent).
 
 - [ ] **Step 3: Edit `package.json`**
 
@@ -92,19 +92,19 @@ Set `name` and add the publish fields. The top of the file becomes:
 
 ```json
 {
-  "name": "@kulapard/pi-caveman",
+  "name": "@kulapard/pi-laconic",
   "version": "0.1.0",
-  "description": "Caveman for Pi: ultra-compressed agent output that preserves technical substance. Six intensity modes, slash commands, natural-language activation, and a session statusline.",
+  "description": "Laconic for Pi: ultra-compressed agent output that preserves technical substance. Six intensity modes, slash commands, natural-language activation, and a session statusline.",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kulapard/pi-caveman.git"
+    "url": "git+https://github.com/kulapard/pi-laconic.git"
   },
   "bugs": {
-    "url": "https://github.com/kulapard/pi-caveman/issues"
+    "url": "https://github.com/kulapard/pi-laconic/issues"
   },
-  "homepage": "https://github.com/kulapard/pi-caveman#readme",
+  "homepage": "https://github.com/kulapard/pi-laconic#readme",
   "publishConfig": {
     "access": "public"
   },
@@ -129,7 +129,7 @@ In the `scripts` block, add `prepublishOnly` (keep the other scripts unchanged):
     "pretest": "npm run typecheck",
     "test": "node --experimental-strip-types --test tests/**/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "test:py": ".venv/bin/pytest skills/caveman-compress",
+    "test:py": ".venv/bin/pytest skills/laconic-compress",
     "prepublishOnly": "npm test"
   },
 ```
@@ -139,9 +139,9 @@ In the `scripts` block, add `prepublishOnly` (keep the other scripts unchanged):
 The lockfile still has the old name in two places, which would break `npm ci` in CI.
 
 Run: `npm install`
-Expected: `package-lock.json` updates its `name` fields to `@kulapard/pi-caveman`; no dependency version changes.
+Expected: `package-lock.json` updates its `name` fields to `@kulapard/pi-laconic`; no dependency version changes.
 
-Verify: `git diff --stat package-lock.json` shows only the lockfile changed, and `grep -c '"@kulapard/pi-caveman"' package-lock.json` returns `>= 1`.
+Verify: `git diff --stat package-lock.json` shows only the lockfile changed, and `grep -c '"@kulapard/pi-laconic"' package-lock.json` returns `>= 1`.
 
 - [ ] **Step 5: Run the manifest tests to verify they pass**
 
@@ -157,7 +157,7 @@ Expected: PASS — `pretest` typecheck clean, all node tests green.
 
 ```bash
 git add package.json package-lock.json tests/manifest.test.mjs
-git commit -m "build: rename to @kulapard/pi-caveman and add npm publish config
+git commit -m "build: rename to @kulapard/pi-laconic and add npm publish config
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
@@ -170,32 +170,32 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Modify: `README.md` (Install section — remove stale remote note, add npm path)
 
 **Interfaces:**
-- Consumes: package name `@kulapard/pi-caveman` from Task 1.
-- Produces: README documenting `pi install @kulapard/pi-caveman`, still mentioning `pi -e` (the readme test requires it).
+- Consumes: package name `@kulapard/pi-laconic` from Task 1.
+- Produces: README documenting `pi install @kulapard/pi-laconic`, still mentioning `pi -e` (the readme test requires it).
 
 - [ ] **Step 1: Confirm the README test guards the strings we must keep**
 
 Run: `node --experimental-strip-types --test tests/readme.test.mjs`
-Expected: PASS now. These tests assert the README keeps `pi -e`, the mode names (`lite`/`full`/`ultra`/`wenyan`), and `/caveman`. Keep all of those strings present through the edit.
+Expected: PASS now. These tests assert the README keeps `pi -e`, the mode names (`lite`/`full`/`ultra`/`wenyan`), and `/laconic`. Keep all of those strings present through the edit.
 
 - [ ] **Step 2: Edit the Install section of `README.md`**
 
 Replace the stale paragraph:
 
 ```markdown
-pi-caveman is a **local package** — there is no published origin remote; you
+pi-laconic is a **local package** — there is no published origin remote; you
 load it from a checkout on disk.
 ```
 
 with:
 
 ```markdown
-pi-caveman publishes to npm as
-[`@kulapard/pi-caveman`](https://www.npmjs.com/package/@kulapard/pi-caveman).
+pi-laconic publishes to npm as
+[`@kulapard/pi-laconic`](https://www.npmjs.com/package/@kulapard/pi-laconic).
 Once the first release is live, install it into a Pi setup with:
 
 ```bash
-pi install npm:@kulapard/pi-caveman
+pi install npm:@kulapard/pi-laconic
 ```
 
 You can also load it straight from a checkout on disk (no install needed) — see
@@ -208,13 +208,13 @@ manifest block, and First-time setup) unchanged.
 - [ ] **Step 3: Run the README tests to verify they still pass**
 
 Run: `node --experimental-strip-types --test tests/readme.test.mjs`
-Expected: PASS — `pi -e`, mode names, and `/caveman` still present.
+Expected: PASS — `pi -e`, mode names, and `/laconic` still present.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add README.md
-git commit -m "docs: document npm install path for @kulapard/pi-caveman
+git commit -m "docs: document npm install path for @kulapard/pi-laconic
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
@@ -448,8 +448,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 These are **not** code tasks — they happen on npmjs.com and the local machine, once, after the code above is merged.
 
-1. **Bootstrap publish (local, one-time):** from a clean checkout on the new name, `npm login` then `npm publish`. `publishConfig.access: public` makes it public. This creates `@kulapard/pi-caveman@0.1.0` so the package exists. Note: the local working tree may contain dev artifacts (gitignored `__pycache__/*.pyc` files from running pytest) that a `files`-whitelisted directory ships wholesale, so run `git clean -fdx` (or publish from a fresh clone) before the bootstrap `npm publish` to keep the tarball clean — CI publishes from a clean checkout and is unaffected.
-2. **Enable Trusted Publishing:** npmjs.com → the package → Settings → Trusted Publisher → GitHub Actions → user `kulapard`, repo `pi-caveman`, workflow filename `publish.yml`, allowed action `npm publish`.
+1. **Bootstrap publish (local, one-time):** from a clean checkout on the new name, `npm login` then `npm publish`. `publishConfig.access: public` makes it public. This creates `@kulapard/pi-laconic@0.1.0` so the package exists. Note: the local working tree may contain dev artifacts (gitignored `__pycache__/*.pyc` files from running pytest) that a `files`-whitelisted directory ships wholesale, so run `git clean -fdx` (or publish from a fresh clone) before the bootstrap `npm publish` to keep the tarball clean — CI publishes from a clean checkout and is unaffected.
+2. **Enable Trusted Publishing:** npmjs.com → the package → Settings → Trusted Publisher → GitHub Actions → user `kulapard`, repo `pi-laconic`, workflow filename `publish.yml`, allowed action `npm publish`.
 3. *(optional hardening)* Settings → "Require two-factor authentication and disallow tokens".
 4. **Release flow thereafter:** bump `version` in `package.json` → commit → `git tag vX.Y.Z` → `git push --tags`. The `publish.yml` workflow publishes via OIDC; no local login needed.
 
@@ -462,7 +462,7 @@ These are **not** code tasks — they happen on npmjs.com and the local machine,
 
 **Placeholder scan:** No TBD/TODO; every code and YAML block is complete; every command has expected output.
 
-**Type/name consistency:** `@kulapard/pi-caveman`, `publishConfig.access`, `files` entries (`extensions`/`skills`/`agents`), `prepublishOnly` = `npm test`, `readWorkflow(name)` helper (defined Task 3, reused Task 4), workflow filenames `ci.yml`/`publish.yml` — all consistent across tasks.
+**Type/name consistency:** `@kulapard/pi-laconic`, `publishConfig.access`, `files` entries (`extensions`/`skills`/`agents`), `prepublishOnly` = `npm test`, `readWorkflow(name)` helper (defined Task 3, reused Task 4), workflow filenames `ci.yml`/`publish.yml` — all consistent across tasks.
 
 ---
 
@@ -472,8 +472,8 @@ A `/review` pass on PR #1 surfaced 8 findings; the fixes are folded into the
 task blocks above so a re-run reproduces the final state, not the pre-review
 version:
 
-- **Install command** (Task 2): `pi install @kulapard/pi-caveman` →
-  `pi install npm:@kulapard/pi-caveman`. Pi requires the `npm:` source prefix;
+- **Install command** (Task 2): `pi install @kulapard/pi-laconic` →
+  `pi install npm:@kulapard/pi-laconic`. Pi requires the `npm:` source prefix;
   the bare form fails. README wording also softened to "Once the first release
   is live" since the package 404s until the manual bootstrap publish.
 - **Tarball hygiene** (Task 1): `files` gained `!**/__pycache__`, `!**/*.pyc`,

@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-06-30
+
+Renamed the project from **pi-caveman** to **pi-laconic** (npm
+`@kulapard/pi-caveman` → `@kulapard/pi-laconic`). The compression behavior is
+unchanged; only the name, the voice framing, and all command/skill identifiers
+move. *Laconic* — terse Spartan speech — replaces the caveman metaphor.
+
+### Changed (BREAKING)
+
+- Package renamed to `@kulapard/pi-laconic`; repository moved to
+  `kulapard/pi-laconic` (old URLs redirect).
+- Commands renamed `/caveman*` → `/laconic*`: `/laconic`, `/laconic-help`,
+  `/laconic-commit`, `/laconic-review`, `/laconic-compress`, `/laconic-stats`.
+- Skills renamed `caveman*` → `laconic*`; the `cavecrew` subagent suite is now
+  `laconic-crew` (agents `laconic-builder`, `laconic-investigator`,
+  `laconic-reviewer`).
+- Statusline indicator is now `laconic:<mode>` (was `caveman:<mode>`).
+- Mode voice reframed from "caveman" to Spartan/laconic; injected instructions
+  now read "Respond like a Spartan: maximum meaning, fewest words."
+- Natural-language activation phrases updated: "laconic mode", "be laconic",
+  "talk like a Spartan", "use laconic" (plus the unchanged generic "less/fewer/
+  save tokens", "be brief"); deactivation "stop laconic", "disable laconic",
+  "normal mode".
+- Project-scoped state moved to `.pi/laconic-mode.json` (was
+  `.pi/caveman-mode.json`); the session entry type is now `laconic-mode`.
+
+### Migration
+
+- No automatic migration: on upgrade, a previously persisted
+  `.pi/caveman-mode.json` is ignored and the mode resets to `off`. Re-enable
+  with `/laconic`. The old `/caveman*` commands and `caveman` triggers are gone.
+- The old npm package `@kulapard/pi-caveman` is deprecated in favor of
+  `@kulapard/pi-laconic`.
+
+Attribution to upstream [caveman](https://github.com/JuliusBrussee/caveman) is
+unchanged.
+
 ## [0.7.0] - 2026-06-30
 
 ### Changed
@@ -150,7 +187,8 @@ inspired by [caveman](https://github.com/JuliusBrussee/caveman).
   token, automatic provenance, a tag-equals-version guard, and a concurrency
   group).
 
-[Unreleased]: https://github.com/kulapard/pi-caveman/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/kulapard/pi-laconic/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/kulapard/pi-laconic/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/kulapard/pi-caveman/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/kulapard/pi-caveman/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/kulapard/pi-caveman/compare/v0.4.2...v0.5.0

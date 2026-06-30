@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
-const compressDir = join(repoRoot, "skills", "caveman-compress");
+const compressDir = join(repoRoot, "skills", "laconic-compress");
 
 const files = ["SKILL.md", "README.md"];
 
@@ -33,7 +33,7 @@ const forbiddenPythonResidue = [
 ];
 
 for (const file of files) {
-	test(`caveman-compress/${file} has no Claude-Code / plugin-install residue`, () => {
+	test(`laconic-compress/${file} has no Claude-Code / plugin-install residue`, () => {
 		const content = readFileSync(join(compressDir, file), "utf8");
 		const lower = content.toLowerCase();
 		for (const needle of forbiddenSubstrings) {
@@ -44,7 +44,7 @@ for (const file of files) {
 		}
 	});
 
-	test(`caveman-compress/${file} has no Python-toolkit residue`, () => {
+	test(`laconic-compress/${file} has no Python-toolkit residue`, () => {
 		const content = readFileSync(join(compressDir, file), "utf8");
 		const lower = content.toLowerCase();
 		for (const needle of forbiddenPythonResidue) {
@@ -56,11 +56,11 @@ for (const file of files) {
 	});
 }
 
-test("caveman-compress/README.md does not document a plugin-based install path", () => {
+test("laconic-compress/README.md does not document a plugin-based install path", () => {
 	const content = readFileSync(join(compressDir, "README.md"), "utf8");
 	assert.doesNotMatch(
 		content,
-		/install (the )?`?caveman`? (plugin|once)/i,
+		/install (the )?`?laconic`? (plugin|once)/i,
 		"README must not document the Claude-Code plugin install path",
 	);
 });

@@ -14,9 +14,9 @@ __pycache__/
 .superpowers/
 .pi/
 
-# caveman-compress backups
+# laconic-compress backups
 *.original
 *.original.*
 
-# project-scoped caveman mode state
-.pi/caveman-mode.json
+# project-scoped laconic mode state
+.pi/laconic-mode.json

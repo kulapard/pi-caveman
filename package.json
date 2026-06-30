@@ -1,17 +1,17 @@
 {
-  "name": "@kulapard/pi-caveman",
-  "version": "0.7.0",
-  "description": "Caveman for Pi: ultra-compressed agent output that preserves technical substance. Three intensity modes, slash commands, natural-language activation, and a session statusline. Inspired by caveman.",
+  "name": "@kulapard/pi-laconic",
+  "version": "0.8.0",
+  "description": "Laconic for Pi: ultra-compressed agent output that preserves technical substance. Three intensity modes, slash commands, natural-language activation, and a session statusline. Inspired by caveman.",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kulapard/pi-caveman.git"
+    "url": "git+https://github.com/kulapard/pi-laconic.git"
   },
   "bugs": {
-    "url": "https://github.com/kulapard/pi-caveman/issues"
+    "url": "https://github.com/kulapard/pi-laconic/issues"
   },
-  "homepage": "https://github.com/kulapard/pi-caveman#readme",
+  "homepage": "https://github.com/kulapard/pi-laconic#readme",
   "publishConfig": {
     "access": "public"
   },
@@ -28,6 +28,7 @@
   "keywords": [
     "pi-package",
     "pi",
+    "laconic",
     "caveman",
     "compression",
     "token-efficiency",
@@ -35,7 +36,7 @@
   ],
   "pi": {
     "extensions": [
-      "./extensions/caveman.ts"
+      "./extensions/laconic.ts"
     ],
     "skills": [
       "./skills"

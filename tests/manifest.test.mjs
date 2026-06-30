@@ -14,7 +14,7 @@ function readManifest() {
 
 test("package.json is valid JSON and identifies the package", () => {
 	const pkg = readManifest();
-	assert.equal(pkg.name, "@kulapard/pi-caveman");
+	assert.equal(pkg.name, "@kulapard/pi-laconic");
 	assert.match(
 		pkg.version,
 		/^\d+\.\d+\.\d+$/,
@@ -74,7 +74,7 @@ test("keywords include the pi-package marker", () => {
 test("pi block points at the confirmed extension path and skills dir", () => {
 	const pkg = readManifest();
 	assert.ok(pkg.pi, "pi block must exist");
-	assert.deepEqual(pkg.pi.extensions, ["./extensions/caveman.ts"]);
+	assert.deepEqual(pkg.pi.extensions, ["./extensions/laconic.ts"]);
 	assert.deepEqual(pkg.pi.skills, ["./skills"]);
 });
 
@@ -115,6 +115,6 @@ test("scripts wire up test and typecheck", () => {
 	assert.equal(
 		pkg.scripts["test:py"],
 		undefined,
-		"caveman-compress is prompt-only — there is no Python test script",
+		"laconic-compress is prompt-only — there is no Python test script",
 	);
 });

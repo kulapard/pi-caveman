@@ -23,7 +23,7 @@ test("README documents the confirmed `pi -e` install mechanism", () => {
 test("README documents the GitHub install URL", () => {
 	const readme = readFileSync(readmePath, "utf8");
 	assert.ok(
-		readme.includes("pi install https://github.com/kulapard/pi-caveman"),
+		readme.includes("pi install https://github.com/kulapard/pi-laconic"),
 		"README must document the pi install GitHub URL mechanism",
 	);
 });
@@ -35,10 +35,10 @@ test("README lists the three intensity modes", () => {
 	}
 });
 
-test("README documents the /caveman command", () => {
+test("README documents the /laconic command", () => {
 	const readme = readFileSync(readmePath, "utf8");
 	assert.ok(
-		readme.includes("/caveman"),
-		"README must document the /caveman command",
+		readme.includes("/laconic"),
+		"README must document the /laconic command",
 	);
 });

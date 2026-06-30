@@ -1,22 +1,22 @@
-# Design: Publish pi-caveman to npm via Trusted Publishing
+# Design: Publish pi-laconic to npm via Trusted Publishing
 
 Date: 2026-06-29
 Status: Approved
 
 ## Goal
 
-Make `pi-caveman` installable from the public npm registry and publish it
+Make `pi-laconic` installable from the public npm registry and publish it
 automatically from CI, using npm **Trusted Publishing** (OIDC) — no long-lived
 `NPM_TOKEN` stored anywhere.
 
 ## Constraints / facts established
 
-- The bare name `pi-caveman` is already owned on npm by `jonjonrankin`
+- The bare name `pi-laconic` is already owned on npm by `jonjonrankin`
   (currently v1.0.7). We cannot publish under it. → publish under the scoped
-  name **`@kulapard/pi-caveman`** (matches the GitHub owner `kulapard`).
+  name **`@kulapard/pi-laconic`** (matches the GitHub owner `kulapard`).
 - Pi loads `.ts` extensions directly, so there is **no compile step**. We ship
   the TypeScript source (`extensions/*.ts`) and the `skills/` tree as-is.
-- Git origin already exists: `github.com/kulapard/pi-caveman` (the README's
+- Git origin already exists: `github.com/kulapard/pi-laconic` (the README's
   "no published origin remote" note is stale and will be corrected).
 - Trusted Publishing requirements (npm docs): npm CLI **>= 11.5.1**, Node
   **>= 22.14**. No `NODE_AUTH_TOKEN`. Provenance is generated **automatically**
@@ -29,7 +29,7 @@ automatically from CI, using npm **Trusted Publishing** (OIDC) — no long-lived
 
 ### 1. `package.json`
 
-- `name`: `pi-caveman` → `@kulapard/pi-caveman`
+- `name`: `pi-laconic` → `@kulapard/pi-laconic`
 - add `"publishConfig": { "access": "public" }` (scoped packages default to
   restricted; this keeps both the bootstrap and CI publishes public)
 - add `"files": ["extensions", "skills", "agents", "AGENTS.md",
@@ -40,11 +40,11 @@ automatically from CI, using npm **Trusted Publishing** (OIDC) — no long-lived
   `.npmignore`/`.gitignore` under a `files` whitelist, so the exclusions must
   live in `files` itself.
 - add `"repository"`, `"bugs"`, `"homepage"` pointing at
-  `github.com/kulapard/pi-caveman`
+  `github.com/kulapard/pi-laconic`
 - add `"prepublishOnly": "npm test"` — gate every publish on typecheck + node
   tests
 - `version` stays `0.1.0` for the first publish
-- the `pi` block is unchanged — `./extensions/caveman.ts` ships at that path in
+- the `pi` block is unchanged — `./extensions/laconic.ts` ships at that path in
   the tarball, so Pi resolves it from `node_modules` the same way
 
 ### 2. `.github/workflows/ci.yml`
@@ -82,7 +82,7 @@ No repository secrets are required.
 
 ### 4. `tests/manifest.test.mjs`
 
-- update the name assertion: `pkg.name === "@kulapard/pi-caveman"`
+- update the name assertion: `pkg.name === "@kulapard/pi-laconic"`
 - add assertions that publish config stays present:
   - `pkg.publishConfig.access === "public"`
   - `pkg.files` includes `extensions`, `skills`, `agents`
@@ -92,17 +92,17 @@ No repository secrets are required.
 ### 5. `README.md`
 
 - remove the stale "there is no published origin remote" claim
-- add an npm install path: `pi install npm:@kulapard/pi-caveman` (Pi requires
+- add an npm install path: `pi install npm:@kulapard/pi-laconic` (Pi requires
   the `npm:` source prefix)
 - keep the `pi -e` mechanism documented (the README test asserts it)
 
 ## Manual steps (operator: kulapard)
 
 1. **Bootstrap once (local):** with the renamed package, `npm publish` (public
-   via `publishConfig`) to create `@kulapard/pi-caveman@0.1.0`. Requires
+   via `publishConfig`) to create `@kulapard/pi-laconic@0.1.0`. Requires
    `npm login` first.
 2. **Enable Trusted Publishing:** npmjs.com → package Settings → Trusted
-   Publisher → user `kulapard`, repo `pi-caveman`, workflow `publish.yml`,
+   Publisher → user `kulapard`, repo `pi-laconic`, workflow `publish.yml`,
    allowed action `npm publish`.
 3. *(optional hardening)* package Settings → "Require two-factor authentication
    and disallow tokens".
@@ -119,8 +119,8 @@ No repository secrets are required.
 
 A `/review` pass on PR #1 produced these changes, folded into the sections above:
 
-- **Install command:** `pi install @kulapard/pi-caveman` → `pi install
-  npm:@kulapard/pi-caveman` (the `npm:` source prefix is required by Pi).
+- **Install command:** `pi install @kulapard/pi-laconic` → `pi install
+  npm:@kulapard/pi-laconic` (the `npm:` source prefix is required by Pi).
 - **README wording:** softened from "is published to npm" to "Once the first
   release is live" — the package does not exist on the registry until the
   manual bootstrap publish.
