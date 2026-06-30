@@ -23,6 +23,15 @@ laconic Spartan style: short, precise, low-filler output. It cuts roughly 65–7
 of output tokens while preserving code, commands, API names, file paths, and exact
 error strings verbatim.
 
+## Key features
+
+- **Three intensity modes**: `low`, `medium` (default), `high` — pick how terse you want output.
+- **Slash command**: `/laconic [mode|off]` toggles the mode for the session.
+- **Natural-language activation**: say "laconic mode", "be brief", "save tokens", etc. to switch on; "normal mode" to switch off.
+- **Session + project persistence**: mode survives `/reload` and is restored per project via `.pi/laconic-mode.json`.
+- **Statusline indicator**: shows `laconic:<mode>` when a UI is attached.
+- **Memory-file compression**: `/laconic-compress <file>` rewrites prose files in laconic style, preserving code, URLs, and paths.
+
 ## Why "laconic"?
 
 Laconia was Sparta's region. Spartans were famous for saying little and meaning
