@@ -132,8 +132,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2026-06-29
 
-Initial release — a [Pi](https://github.com/earendil-works/pi-coding-agent)
-port of [caveman](https://github.com/JuliusBrussee/caveman).
+Initial release — a terse-output extension for [Pi](https://github.com/earendil-works/pi-coding-agent)
+inspired by [caveman](https://github.com/JuliusBrussee/caveman).
 
 ### Added
 

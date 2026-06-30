@@ -1,7 +1,7 @@
 {
   "name": "@kulapard/pi-caveman",
   "version": "0.7.0",
-  "description": "Caveman for Pi: ultra-compressed agent output that preserves technical substance. Three intensity modes, slash commands, natural-language activation, and a session statusline.",
+  "description": "Caveman for Pi: ultra-compressed agent output that preserves technical substance. Three intensity modes, slash commands, natural-language activation, and a session statusline. Inspired by caveman.",
   "type": "module",
   "license": "MIT",
   "repository": {

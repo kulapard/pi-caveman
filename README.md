@@ -4,9 +4,8 @@
 [![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 [![CI](https://github.com/kulapard/pi-caveman/actions/workflows/ci.yml/badge.svg)](https://github.com/kulapard/pi-caveman/actions/workflows/ci.yml)
 
-A [Pi](https://github.com/earendil-works/pi-coding-agent) port of
-[caveman](https://github.com/JuliusBrussee/caveman) — a terse-output mode for the
-Pi coding agent. It makes the agent speak in compressed "caveman" prose (drop
+A [Pi](https://github.com/earendil-works/pi-coding-agent) terse-output extension
+inspired by [caveman](https://github.com/JuliusBrussee/caveman). It makes the agent speak in compressed "caveman" prose (drop
 articles, filler, and hedging; fragments over sentences) to cut output tokens by
 roughly 65–75% **while keeping full technical accuracy**: code, commands, API
 names, file paths, and exact error strings are always preserved verbatim.
@@ -233,6 +232,7 @@ the same way the other skills work.
 
 ## Attribution & license
 
-pi-caveman is a Pi port of [caveman](https://github.com/JuliusBrussee/caveman)
+pi-caveman is a terse-output extension for [Pi](https://github.com/earendil-works/pi-coding-agent)
+inspired by [caveman](https://github.com/JuliusBrussee/caveman)
 by Julius Brussee. Licensed under the [MIT License](./LICENSE).
 See [CHANGELOG.md](./CHANGELOG.md) for release notes.
