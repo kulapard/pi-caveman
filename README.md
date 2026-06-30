@@ -14,14 +14,14 @@ plus a set of skills under `skills/`.
 
 <table>
 <tr>
-<td width="50%">
+<td width="50%" valign="top">
 
 ### Normal
 
 > The browser is blocking the request because the response is missing CORS headers. In an Express app you can install the `cors` package and add `app.use(cors())` to allow all origins during development. For production, configure it with your actual origin instead of using the default wildcard.
 
 </td>
-<td width="50%">
+<td width="50%" valign="top">
 
 ### `/caveman`
 
@@ -30,14 +30,14 @@ plus a set of skills under `skills/`.
 </td>
 </tr>
 <tr>
-<td>
+<td valign="top">
 
 ### Normal
 
 > Sure! I'd be happy to help you with that. The issue you're experiencing is most likely caused by your authentication middleware not properly validating the token expiry. Let me take a look and suggest a fix.
 
 </td>
-<td>
+<td valign="top">
 
 ### `/caveman`
 
