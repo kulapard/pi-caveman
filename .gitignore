@@ -7,6 +7,13 @@ __pycache__/
 .idea/
 .DS_Store
 
+# local tool state
+.claude/
+.remember/
+.ralphex/
+.superpowers/
+.pi/
+
 # caveman-compress backups
 *.original
 *.original.*
