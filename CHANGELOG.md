@@ -10,14 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0] - 2026-06-30
 
 Renamed the project from **pi-caveman** to **pi-laconic** (npm
-`@kulapard/pi-caveman` → `@kulapard/pi-laconic`). The compression behavior is
+`@kulapard/pi-caveman` → unscoped `pi-laconic`). The compression behavior is
 unchanged; only the name, the voice framing, and all command/skill identifiers
 move. *Laconic* — terse Spartan speech — replaces the caveman metaphor.
 
 ### Changed (BREAKING)
 
-- Package renamed to `@kulapard/pi-laconic`; repository moved to
-  `kulapard/pi-laconic` (old URLs redirect).
+- Package renamed to unscoped `pi-laconic` (was scoped `@kulapard/pi-caveman`);
+  repository moved to `kulapard/pi-laconic` (old URLs redirect).
 - Commands renamed `/caveman*` → `/laconic*`: `/laconic`, `/laconic-help`,
   `/laconic-commit`, `/laconic-review`, `/laconic-compress`, `/laconic-stats`.
 - Skills renamed `caveman*` → `laconic*`; the `cavecrew` subagent suite is now
@@ -39,7 +39,7 @@ move. *Laconic* — terse Spartan speech — replaces the caveman metaphor.
   `.pi/caveman-mode.json` is ignored and the mode resets to `off`. Re-enable
   with `/laconic`. The old `/caveman*` commands and `caveman` triggers are gone.
 - The old npm package `@kulapard/pi-caveman` is deprecated in favor of
-  `@kulapard/pi-laconic`.
+  `pi-laconic`.
 
 Attribution to upstream [caveman](https://github.com/JuliusBrussee/caveman) is
 unchanged.

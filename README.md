@@ -1,6 +1,6 @@
 # pi-laconic
 
-[![npm version](https://img.shields.io/npm/v/@kulapard/pi-laconic)](https://www.npmjs.com/package/@kulapard/pi-laconic)
+[![npm version](https://img.shields.io/npm/v/pi-laconic)](https://www.npmjs.com/package/pi-laconic)
 [![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 [![CI](https://github.com/kulapard/pi-laconic/actions/workflows/ci.yml/badge.svg)](https://github.com/kulapard/pi-laconic/actions/workflows/ci.yml)
 
@@ -109,11 +109,11 @@ Inner assignment → local var. `UnboundLocalError` = outer ref before local ass
 ## Install
 
 pi-laconic is published to npm as
-[`@kulapard/pi-laconic`](https://www.npmjs.com/package/@kulapard/pi-laconic).
+[`pi-laconic`](https://www.npmjs.com/package/pi-laconic).
 Install it into a Pi setup with:
 
 ```bash
-pi install npm:@kulapard/pi-laconic
+pi install npm:pi-laconic
 ```
 
 You can also load it straight from a checkout on disk — see the `pi -e`

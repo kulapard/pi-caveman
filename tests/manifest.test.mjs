@@ -14,7 +14,7 @@ function readManifest() {
 
 test("package.json is valid JSON and identifies the package", () => {
 	const pkg = readManifest();
-	assert.equal(pkg.name, "@kulapard/pi-laconic");
+	assert.equal(pkg.name, "pi-laconic");
 	assert.match(
 		pkg.version,
 		/^\d+\.\d+\.\d+$/,
