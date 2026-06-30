@@ -56,13 +56,13 @@ test("normalizeMode: each valid mode maps to itself", async () => {
 });
 
 test("normalizeMode: garbage -> undefined", async () => {
-for (const junk of ["banana", "lite-mode", "wenyan-mega", "123", "fullish"]) {
-assert.equal(
-normalizeMode(junk),
-undefined,
-`junk=${JSON.stringify(junk)}`,
-);
-}
+	for (const junk of ["banana", "lite-mode", "wenyan-mega", "123", "fullish"]) {
+		assert.equal(
+			normalizeMode(junk),
+			undefined,
+			`junk=${JSON.stringify(junk)}`,
+		);
+	}
 });
 
 test("VALID_MODES contains exactly the three intensity modes", async () => {

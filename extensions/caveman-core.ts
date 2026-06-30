@@ -66,4 +66,5 @@ Auto-clarity:
 
 export const ACTIVATION_RE =
 	/\b(caveman mode|talk like caveman|use caveman|less tokens|fewer tokens|save tokens|be brief)\b/i;
-export const DEACTIVATION_RE = /\b(stop caveman|normal mode|disable caveman)\b/i;
+export const DEACTIVATION_RE =
+	/\b(stop caveman|normal mode|disable caveman)\b/i;
