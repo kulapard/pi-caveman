@@ -189,35 +189,7 @@ session ends.
 |---------|--------------|
 | <code>/laconic [mode&#124;off]</code> | Enable a mode for this session (or turn it off). |
 | `/laconic-help` | Show the quick-reference card. |
-| `/laconic-commit [notes]` | Generate a terse Conventional Commit message. Does **not** commit. |
-| `/laconic-review [scope]` | One-line-per-finding code review comments. |
 | `/laconic-compress <file> [--force]` | Rewrite a memory file (e.g. `CLAUDE.md`, `AGENTS.md`) in place, compressed. `--force` overwrites an existing `.original.<ext>` backup. |
-
-## Command examples
-
-Generate a commit message:
-
-```bash
-/laconic-commit add JWT guard to login route
-```
-
-Output:
-
-```text
-fix(auth): guard login route with JWT
-```
-
-Review a PR scope:
-
-```bash
-/laconic-review src/middleware/auth.ts
-```
-
-Output:
-
-```text
-src/middleware/auth.ts:L42: 🔴 bug: no JWT guard. Validate before next().
-```
 
 ## Natural-language activation
 
@@ -248,7 +220,7 @@ When a UI is attached, the statusline shows the active mode as
 The `laconic-compress` skill is invoked via the `/laconic-compress` command. It
 is prompt-only: the Pi agent itself compresses a memory file in place
 (writing a `FILE.original.<ext>` backup) using its own model and file tools,
-preserving code, URLs, and paths verbatim — the same way the other skills work.
+preserving code, URLs, and paths verbatim.
 
 ## Attribution & license
 

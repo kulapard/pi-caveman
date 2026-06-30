@@ -8,7 +8,7 @@ Project memory. Non-obvious only.
 - Mode state **session + project-scoped**. `pi.appendEntry("laconic-mode", …)` restores from `ctx.sessionManager.getBranch()` on `session_start`; `extensions/laconic-state.ts` reads/writes `.pi/laconic-mode.json`. Session entry overrides project default; missing state file → `off`. No global/env default.
 - `before_agent_start` appends `modeInstructions(mode)`. Statusline = `ctx.ui.setStatus("laconic", …)` guarded by `hasUI`.
 - Extension `modeInstructions` = **canonical** activator. `skills/laconic/SKILL.md` = fallback when extension not loaded. Both active → model sees both rule sets; intentional redundancy, no de-dupe.
-- Pi 0.80.2 has **no `agents/` subagent mechanism**. `agents/laconic-crew-*.md` = reference personas only; laconic-crew optional/out-of-scope.
+- Extension exposes `/laconic`, `/laconic-help`, and `/laconic-compress`. No packaged subagents. `agents/` directory, `laconic-crew`, `laconic-commit`, and `laconic-review` removed. Laconic mode still propagates to any subagent via `before_agent_start` when the extension is loaded.
 
 ## Invariants
 

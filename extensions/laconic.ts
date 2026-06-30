@@ -18,9 +18,7 @@ Commands:
 - /laconic [low|medium|high] — enable terse mode for this session.
 - /laconic off — disable terse mode.
 - /laconic-help — show this card.
-- /laconic-commit [notes] — generate Conventional Commit message. Does not commit.
-- /laconic-review [scope] — terse review comments.
-- /laconic-compress <file> [--force] — compress prose file via laconic-compress skill. --force overwrites an existing .original backup.
+- /laconic-compress <file> [--force] — compress a prose memory file in place. --force overwrites an existing .original backup.
 
 Mode persists across sessions in the same project via \`.pi/laconic-mode.json\`, and
 survives /reload via session state. Code, commands, API names, file paths, and
@@ -90,26 +88,6 @@ export default function laconicExtension(pi: ExtensionAPI) {
 				content: HELP_TEXT,
 				display: true,
 			});
-		},
-	});
-
-	pi.registerCommand("laconic-commit", {
-		description: "Generate terse Conventional Commit message",
-		handler: async (args) => {
-			const task =
-				args?.trim() ||
-				"Generate a commit message for current repository changes. Inspect git status and diffs as needed. Do not run git commit.";
-			pi.sendUserMessage(`/skill:laconic-commit ${task}`);
-		},
-	});
-
-	pi.registerCommand("laconic-review", {
-		description: "Generate terse code-review comments",
-		handler: async (args) => {
-			const task =
-				args?.trim() ||
-				"Review current repository changes or PR diff. Inspect git diff as needed. Findings only.";
-			pi.sendUserMessage(`/skill:laconic-review ${task}`);
 		},
 	});
 

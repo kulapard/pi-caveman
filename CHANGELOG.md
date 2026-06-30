@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Removed
 
-- README: added sample output to the command examples.
+- Removed `agents/` package subagent personas, the `laconic-crew` skill, and the
+  `laconic-commit` / `laconic-review` commands and skills. pi-laconic now does
+  one thing: toggle laconic terse mode for agent output. It still ships
+  `/laconic-compress` for compressing prose memory files.
 
 ## [1.0.6] - 2026-06-30
 

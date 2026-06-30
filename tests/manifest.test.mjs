@@ -9,17 +9,17 @@ const repoRoot = join(__dirname, "..");
 
 function readManifest() {
 	const raw = readFileSync(join(repoRoot, "package.json"), "utf8");
-	return JSON.parse(raw);
+	try {
+		return JSON.parse(raw);
+	} catch (err) {
+		throw new Error(`package.json is not valid JSON: ${err.message}`);
+	}
 }
 
 test("package.json is valid JSON and identifies the package", () => {
 	const pkg = readManifest();
 	assert.equal(pkg.name, "pi-laconic");
-	assert.match(
-		pkg.version,
-		/^\d+\.\d+\.\d+$/,
-		"version must be valid semver",
-	);
+	assert.match(pkg.version, /^\d+\.\d+\.\d+$/, "version must be valid semver");
 	assert.equal(pkg.license, "MIT");
 });
 
@@ -29,15 +29,19 @@ test("package.json carries public publish config", () => {
 	assert.equal(pkg.publishConfig.access, "public");
 });
 
-test("files whitelist ships the extension, skills, and agents", () => {
+test("files whitelist ships the extension, skills, and docs", () => {
 	const pkg = readManifest();
 	assert.ok(Array.isArray(pkg.files), "files must be an array");
-	for (const entry of ["extensions", "skills", "agents", "AGENTS.md"]) {
+	for (const entry of ["extensions", "skills", "AGENTS.md"]) {
 		assert.ok(
 			pkg.files.includes(entry),
 			`files whitelist must include "${entry}"`,
 		);
 	}
+	assert.ok(
+		!pkg.files.includes("agents"),
+		"files whitelist must not include removed agents directory",
+	);
 });
 
 test("prepublishOnly gates publish on the test suite", () => {
@@ -76,6 +80,11 @@ test("pi block points at the confirmed extension path and skills dir", () => {
 	assert.ok(pkg.pi, "pi block must exist");
 	assert.deepEqual(pkg.pi.extensions, ["./extensions/laconic.ts"]);
 	assert.deepEqual(pkg.pi.skills, ["./skills"]);
+});
+
+test("package.json does not expose agents/ to pi-subagents", () => {
+	const pkg = readManifest();
+	assert.equal(pkg.pi.subagents, undefined);
 });
 
 test("devDependencies pin the Pi SDK and TypeScript", () => {

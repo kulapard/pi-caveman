@@ -368,54 +368,6 @@ test("/laconic-help: sends the HELP_TEXT card with customType laconic-help", asy
 	assert.doesNotMatch(fake.messages[0].content, /laconic-stats/);
 });
 
-test("/laconic-commit: dispatches /skill:laconic-commit with the given notes", async () => {
-	const fake = makeFakePi();
-	laconicExtension(fake.pi);
-	const commit = fake.commands.get("laconic-commit");
-	await commit.handler("only the auth module");
-
-	assert.equal(fake.userMessages.length, 1);
-	assert.match(
-		fake.userMessages[0],
-		/^\/skill:laconic-commit only the auth module$/,
-	);
-});
-
-test("/laconic-commit: falls back to the default task on an empty arg", async () => {
-	const fake = makeFakePi();
-	laconicExtension(fake.pi);
-	const commit = fake.commands.get("laconic-commit");
-	await commit.handler("");
-
-	assert.equal(fake.userMessages.length, 1);
-	assert.match(fake.userMessages[0], /^\/skill:laconic-commit /);
-	assert.match(fake.userMessages[0], /Generate a commit message/);
-});
-
-test("/laconic-review: dispatches /skill:laconic-review with the given scope", async () => {
-	const fake = makeFakePi();
-	laconicExtension(fake.pi);
-	const review = fake.commands.get("laconic-review");
-	await review.handler("the diff in src/");
-
-	assert.equal(fake.userMessages.length, 1);
-	assert.match(
-		fake.userMessages[0],
-		/^\/skill:laconic-review the diff in src\/$/,
-	);
-});
-
-test("/laconic-review: falls back to the default task on an empty arg", async () => {
-	const fake = makeFakePi();
-	laconicExtension(fake.pi);
-	const review = fake.commands.get("laconic-review");
-	await review.handler("");
-
-	assert.equal(fake.userMessages.length, 1);
-	assert.match(fake.userMessages[0], /^\/skill:laconic-review /);
-	assert.match(fake.userMessages[0], /Review current repository changes/);
-});
-
 test("/laconic-stats: is not registered", async () => {
 	const fake = makeFakePi();
 	laconicExtension(fake.pi);
