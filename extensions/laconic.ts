@@ -21,7 +21,6 @@ Commands:
 - /laconic-commit [notes] — generate Conventional Commit message. Does not commit.
 - /laconic-review [scope] — terse review comments.
 - /laconic-compress <file> [--force] — compress prose file via laconic-compress skill. --force overwrites an existing .original backup.
-- /laconic-stats — load stats skill/help.
 
 Mode persists across sessions in the same project via \`.pi/laconic-mode.json\`, and
 survives /reload via session state. Code, commands, API names, file paths, and
@@ -128,15 +127,6 @@ export default function laconicExtension(pi: ExtensionAPI) {
 			}
 			pi.sendUserMessage(
 				`/skill:laconic-compress ${target}${force ? " --force" : ""}`,
-			);
-		},
-	});
-
-	pi.registerCommand("laconic-stats", {
-		description: "Show laconic stats skill/help",
-		handler: async (args) => {
-			pi.sendUserMessage(
-				`/skill:laconic-stats ${args?.trim() || "Show laconic stats if available."}`,
 			);
 		},
 	});

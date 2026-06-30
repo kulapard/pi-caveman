@@ -31,7 +31,7 @@ Modes:
 Skills:
   /laconic-commit       terse Conventional Commits
   /laconic-review       one-line PR comments
-  /laconic-stats        session token savings
+  /laconic-compress     compress memory files
 
 Deactivate:
   "stop laconic" or "normal mode"

@@ -365,6 +365,7 @@ test("/laconic-help: sends the HELP_TEXT card with customType laconic-help", asy
 	assert.equal(fake.messages[0].display, true);
 	assert.match(fake.messages[0].content, /Laconic for Pi/);
 	assert.match(fake.messages[0].content, /\/laconic-help/);
+	assert.doesNotMatch(fake.messages[0].content, /laconic-stats/);
 });
 
 test("/laconic-commit: dispatches /skill:laconic-commit with the given notes", async () => {
@@ -415,25 +416,11 @@ test("/laconic-review: falls back to the default task on an empty arg", async ()
 	assert.match(fake.userMessages[0], /Review current repository changes/);
 });
 
-test("/laconic-stats: dispatches /skill:laconic-stats with the given arg", async () => {
+test("/laconic-stats: is not registered", async () => {
 	const fake = makeFakePi();
 	laconicExtension(fake.pi);
-	const stats = fake.commands.get("laconic-stats");
-	await stats.handler("last 3 turns");
 
-	assert.equal(fake.userMessages.length, 1);
-	assert.match(fake.userMessages[0], /^\/skill:laconic-stats last 3 turns$/);
-});
-
-test("/laconic-stats: falls back to the default prompt on an empty arg", async () => {
-	const fake = makeFakePi();
-	laconicExtension(fake.pi);
-	const stats = fake.commands.get("laconic-stats");
-	await stats.handler("");
-
-	assert.equal(fake.userMessages.length, 1);
-	assert.match(fake.userMessages[0], /^\/skill:laconic-stats /);
-	assert.match(fake.userMessages[0], /Show laconic stats if available\./);
+	assert.equal(fake.commands.has("laconic-stats"), false);
 });
 
 // --- getArgumentCompletions for /laconic ---

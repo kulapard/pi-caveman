@@ -27,4 +27,4 @@ Every notable change → `CHANGELOG.md` `[Unreleased]`. Before finish, run `npm 
 
 - `npm test` = `pretest` (`npm run typecheck` → `tsc --noEmit`), then `node --test tests/**/*.test.mjs`. Typecheck failures fail test run.
 - Node `--test` glob expanded by runner, not shell. Directory-recursion `--test tests/` does **not** work on current Node — keep glob.
-- Tests are **phantom-reference guards** (`tests/stats-docs.test.mjs`, `tests/laconic-crew-docs.test.mjs`, `tests/compress-docs.test.mjs`): docs must not mention Claude-Code hooks layer, plugin install path, `⛏` badge, Claude-only subagent presets, broken asset paths. Do not reintroduce.
+- Tests are **phantom-reference guards** (`tests/laconic-crew-docs.test.mjs`, `tests/compress-docs.test.mjs`): docs must not mention Claude-Code hooks layer, plugin install path, `⛏` badge, Claude-only subagent presets, broken asset paths. Do not reintroduce.

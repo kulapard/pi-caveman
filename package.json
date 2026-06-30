@@ -1,6 +1,6 @@
 {
   "name": "pi-laconic",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Laconic for Pi: ultra-compressed agent output that preserves technical substance. Three intensity modes, slash commands, natural-language activation, and a session statusline. Inspired by caveman.",
   "type": "module",
   "license": "MIT",

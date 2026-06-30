@@ -192,7 +192,6 @@ session ends.
 | `/laconic-commit [notes]` | Generate a terse Conventional Commit message. Does **not** commit. |
 | `/laconic-review [scope]` | One-line-per-finding code review comments. |
 | `/laconic-compress <file> [--force]` | Rewrite a memory file (e.g. `CLAUDE.md`, `AGENTS.md`) in place, compressed. `--force` overwrites an existing `.original.<ext>` backup. |
-| `/laconic-stats` | Load the stats skill (an on-demand, model-driven estimate). |
 
 ## Command examples
 

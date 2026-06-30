@@ -7,6 +7,10 @@ Claude-Code reference (with file + line) for Tasks 6 and 8, and gates Tasks 2,
 
 Date: 2026-06-28. Auditor: automated discovery pass.
 
+> Historical audit. Current package state may differ; notably `/laconic-stats`
+> and `skills/laconic-stats/` were removed after this audit because savings
+> stats were only estimates.
+
 ---
 
 ## 1. Toolchain & SDK (confirms Task 2 inputs)
@@ -20,6 +24,7 @@ Date: 2026-06-28. Auditor: automated discovery pass.
 | **pytest** | **NOT installed** | `python3 -m pytest` → "No module named pytest". Task 5 must install it. |
 
 ### SDK: `@earendil-works/pi-coding-agent@0.80.2`
+
 - **Not in this repo's `node_modules`** (no local install yet). Installed globally at
   `/Users/kulapard/.local/share/fnm/node-versions/v26.3.0/installation/lib/node_modules/@earendil-works/pi-coding-agent`.
 - **ESM-only**: `package.json` has `"type": "module"` and `"exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } }` — there is **no `require`/CJS entry**. `package.json` must declare `"type": "module"`.
@@ -32,27 +37,34 @@ Date: 2026-06-28. Auditor: automated discovery pass.
 ## 2. Pi load mechanics — CONFIRMED (gates Tasks 2 & 9)
 
 ### How `pi` loads a package's extensions
+
 From the SDK loader (`dist/core/extensions/loader.js`):
+
 - `readPiManifest(packageJsonPath)` reads `package.json` and returns its `pi` object if `pkg.pi` is a non-null object.
 - `resolveExtensionEntries(dir)` checks `package.json` **first**: if `manifest.extensions` has entries, each is resolved with `path.resolve(dir, extPath)` and kept if the file exists. Falls back to `index.ts`/`index.js` only if no manifest entries.
 
 **Conclusion**: `pi.extensions: ["./extensions/laconic.ts"]` is honored **at its current path** — Pi resolves it relative to the package dir. **The file does NOT need to move to `.pi/extensions/`.** The plan's fallback (move to `.pi/extensions/`) is unnecessary.
 
 ### Manifest resource types Pi actually understands
+
 `ResolvedPaths` (`dist/core/package-manager.d.ts`) has exactly: **`extensions`, `skills`, `prompts`, `themes`**. There is **NO `agents` resource type** and **no `pi.agents` manifest field**. This is the gating fact for Task 8 (see §6).
 
 So the manifest should declare only `pi: { extensions: [...], skills: ["./skills"] }`. `agents/` is not a Pi-loadable resource directory.
 
 ### Concrete non-interactive load test (performed)
+
 - `node --experimental-strip-types --check extensions/laconic.ts` → **exit 0** (parses clean against strip-types).
 - Live `pi` load, non-interactive:
+
   ```
   PI_CODING_AGENT_DIR=~/.pi/agent-base PI_OFFLINE=1 command pi \
     -e /Users/kulapard/projects/pi-laconic/extensions/laconic.ts \
     --offline --no-session --no-tools --print "/laconic-help"
   ```
+
   → **exit 0, no errors.** The extension loaded and the `/laconic-help` slash command was processed without throwing (slash command needs no provider call).
 - ⚠️ The `--verbose` variant **hangs** (it blocks on the interactive TUI). Driving the interactive TUI from a non-interactive shell hangs the session, so the **full interactive smoke test (banner injection, `/laconic ultra` switching response style, statusline `laconic:<mode>`) is deferred to Post-Completion**. Recommended manual command for that smoke test:
+
   ```
   PI_CODING_AGENT_DIR=~/.pi/agent-base command pi -e /Users/kulapard/projects/pi-laconic/extensions/laconic.ts
   # then in the TUI:  /laconic-help   /laconic ultra   (ask a question)   stop laconic
@@ -61,6 +73,7 @@ So the manifest should declare only `pi: { extensions: [...], skills: ["./skills
 **Verified statically + via clean non-interactive exit; live TUI smoke deferred to Post-Completion.**
 
 ### Install path for the README (Task 9)
+
 - Dev / local: `pi -e /Users/kulapard/projects/pi-laconic` is NOT a directory form for `-e` (`-e` takes a file). The package forms are:
   - `pi install <source>` (adds to settings; source = local path or git/npm).
   - Or `pi -e ./extensions/laconic.ts --skill ./skills` for a one-off load.
@@ -71,6 +84,7 @@ So the manifest should declare only `pi: { extensions: [...], skills: ["./skills
 ## 3. Extension (`extensions/laconic.ts`, 230 lines) — purpose & state
 
 Default export `laconicExtension(pi: ExtensionAPI)`. Design (matches plan Overview — **do not rebuild**):
+
 - **Modes**: `lite | full | ultra | wenyan-lite | wenyan-full | wenyan-ultra` (+ `off`). `VALID_MODES` set.
 - **`normalizeMode(raw)`**: empty→`full`; `off|stop|normal|normal-mode|disable|disabled`→`off`; `wenyan|classical`→`wenyan-full`; valid mode→itself; else→`undefined`.
 - **`modeInstructions(mode)`**: returns `base` (contains the literal `LACONIC MODE ACTIVE`) + per-mode line.
@@ -112,6 +126,7 @@ Default export `laconicExtension(pi: ExtensionAPI)`. Design (matches plan Overvi
 Entry points: `cli.py:main` (console `laconic <filepath>`) and `python -m scripts` (`__main__.py` → `from .cli import main`). `validate.py`/`detect.py`/`benchmark.py` each have their own `__main__` blocks. `compress.py` has relative imports + no `__main__`, so it is import-only.
 
 ### `compress.py` — pure vs model-bound (gates Task 5 test plan)
+
 - **`call_claude(prompt) -> str`** (line 122): **LIVE MODEL CALL.** Tries Anthropic SDK first if `ANTHROPIC_API_KEY` set (`anthropic.Anthropic().messages.create(model=os.environ.get("LACONIC_MODEL","claude-sonnet-4-5"), max_tokens=8192, …)`), else falls back to the `claude --print` CLI via `subprocess.run([claude_bin,"--print"], input=prompt, …)`. **This is why compression is NOT unit-tested for a ratio** — non-hermetic, `claude`/key may be absent.
 - **Pure / deterministic helpers** (unit-testable, no model):
   - `split_frontmatter(text)` (28) — split YAML frontmatter from body; regex only.
@@ -130,11 +145,13 @@ Entry points: `cli.py:main` (console `laconic <filepath>`) and `python -m script
   - Post-`call_claude` (need monkeypatch): empty-response abort (283–286), **identical-output abort** (290–294), backup-write-verify failure (305–312), validate/retry loop (`MAX_RETRIES`).
 
 ### `validate.py`
+
 - `class ValidationResult` (16): `is_valid` (default True), `errors`, `warnings`; `add_error` (flips `is_valid` False), `add_warning`.
 - `extract_code_blocks(text)` (41), `extract_urls(text)` (85, returns set of `https?://…`), `extract_inline_codes(text)` (97, strips fences then inline `` `…` ``). All pure.
 - `validate(original_path, compressed_path) -> ValidationResult` (173) — reads both files, runs 6 validators; **code-block / url / inline-code / heading-count mismatches are ERRORS** (verbatim guarantee); heading text/order, path, bullet-count, inline-add are warnings. This is the unit under test for "doctored compression drops a code line / URL / inline code → flagged".
 
 ### `detect.py`
+
 - `detect_file_type(filepath) -> str` (62) → `natural_language|code|config|unknown`; extension-first, content heuristics for extensionless.
 - `should_compress(filepath) -> bool` (100) → `is_file()` and not `*.original.md` and type == `natural_language`.
 
@@ -148,6 +165,7 @@ Entry points: `cli.py:main` (console `laconic <filepath>`) and `python -m script
 - Therefore the `agents/laconic-crew-*.md` files are **not loaded by Pi as subagent presets**. The laconic-crew premise ("spawn subagent → compressed tool-result into main context") has **no host mechanism in Pi 0.80.2**.
 
 **Decision for Task 8 (recommended): mark laconic-crew OPTIONAL / OUT-OF-SCOPE for the Pi package.** Do not reword the `.md` files into something Pi cannot run. Task 8 should:
+
 - State in `laconic-crew/README.md` that Pi (0.80.2) has no subagent-preset mechanism, so laconic-crew is not wired in; keep the files as design notes / future work (e.g. if `pi-subagents` or a future Pi feature lands).
 - Still strip the **phantom Claude-Code references** from the laconic-crew files (frontmatter `tools:`/`model:`, the `hooks/*.js` + `tests/test_symlink_flag.js` example, the `Explore`/`Code Reviewer`/`feature-dev:*` presets) so the phantom-reference sweep (Task 10) passes — replace the investigator example with a real one from this repo (e.g. `extensions/laconic.ts`).
 - Do NOT add `agents/` to the manifest.
@@ -159,6 +177,7 @@ Entry points: `cli.py:main` (console `laconic <filepath>`) and `python -m script
 Every reference to a Claude-Code architecture that does not exist on Pi (no `hooks/` dir, no `.js` files, no `decision:"block"` API, no session-log reader, no `⛏` badge, no subagent presets). File + line + content.
 
 ### laconic-stats (Task 6) — the heaviest concentration
+
 | File:Line | Content |
 |-----------|---------|
 | `skills/laconic-stats/SKILL.md:5` | `Reads directly from the Claude Code session log — no AI estimation.` (frontmatter description) |
@@ -169,6 +188,7 @@ Every reference to a Claude-Code architecture that does not exist on Pi (no `hoo
 Phantom items in laconic-stats: `hooks/laconic-stats.js`, `hooks/laconic-mode-tracker.js`, `decision: "block"`, "Claude Code session log" / JSONL session-log reader, "lifetime-savings suffix file", `⛏` statusline badge. **None exist on Pi.** No token tracking exists anywhere in the extension. → Task 6 default: rewrite BOTH files to reality (manual/skill-driven estimate; statusline is `laconic:<mode>`; no hooks/log/badge).
 
 ### laconic-crew skill (Task 8) — Claude-Code subagent presets
+
 | File:Line | Content (abridged) |
 |-----------|--------------------|
 | `skills/laconic-crew/SKILL.md:7` | frontmatter desc: "work inline or using vanilla `Explore`. Subagent output is laconic-compressed" |
@@ -181,6 +201,7 @@ Phantom items in laconic-stats: `hooks/laconic-stats.js`, `hooks/laconic-mode-tr
 | `skills/laconic-crew/README.md:17` | "Use vanilla `Explore` or `Code Reviewer` when you want prose…" |
 
 ### agents/laconic-crew-*.md (Task 8) — Claude-Code frontmatter + phantom example
+
 | File:Line | Content |
 |-----------|---------|
 | `agents/laconic-builder.md:9` | `tools: [Read, Edit, Write, Grep, Glob]` (Claude-Code frontmatter; no `model:`) |
@@ -198,6 +219,7 @@ Phantom items in laconic-stats: `hooks/laconic-stats.js`, `hooks/laconic-mode-tr
 (Frontmatter `tools:`/`model:` are Claude-Code conventions; Pi does not load `agents/` at all — §6. The `hooks/*.js` and `tests/test_symlink_flag.js` citations in `laconic-investigator.md` are a *worked example*, not real files; replace with a real example such as `extensions/laconic.ts`.)
 
 ### Phantom strings NOT found (clean)
+
 - `tests/test_symlink_flag.js` appears **only** in `agents/laconic-investigator.md:55` (an example) — **not** under `skills/`.
 - No Read/Edit/Write/Grep/Glob tool-array prose inside skill bodies.
 - No `⛏`, `decision:"block"`, `hooks/`, or session-log refs in any skill other than `laconic-stats`, and none in the extension or Python.
@@ -275,6 +297,7 @@ discovery/gating note; this section is the final, recorded decision and is the
 text Task 9's root `README.md` must carry — see below.)
 
 ### The gap
+
 - Upstream caveman (JuliusBrussee/caveman) ships a **`caveman-shrink` MCP
   middleware** that sits between the agent and the model to shrink payloads.
 - **pi-laconic has none.** There is **NO `caveman-shrink` code anywhere on
@@ -284,6 +307,7 @@ text Task 9's root `README.md` must carry — see below.)
   context shrinks per delegation"). Neither is an MCP tool.
 
 ### The decision (DEFAULT — adopted)
+
 - **The Python `laconic-compress` toolkit is the Pi equivalent of upstream's
   MCP shrink**, invoked via the `/laconic-compress` skill/command. MCP
   `caveman-shrink` is **OUT OF SCOPE for v0.1.0.**
@@ -293,6 +317,7 @@ text Task 9's root `README.md` must carry — see below.)
   skill — it would only duplicate it behind a different transport.
 
 ### Honest caveat (state plainly)
+
 - `laconic-compress` is **itself Claude-bound**: `compress.py` `call_claude()`
   performs compression via a live model call (Anthropic SDK if
   `ANTHROPIC_API_KEY` is set, else the `claude --print` CLI). So **"Pi-native"
@@ -302,6 +327,7 @@ text Task 9's root `README.md` must carry — see below.)
   the difference is only the integration mechanism (Pi skill vs MCP middleware).
 
 ### Consequences
+
 - Plan **Acceptance Criteria** already reflects this (the MCP-`caveman-shrink`
   bullet: "does not exist — Python compress, itself Claude-bound, is the Pi
   equivalent unless a decision adds it"). Verified consistent — no edit needed.
@@ -323,12 +349,13 @@ The plan `docs/plans/20260628-pi-laconic.md` ran to completion. Tasks 1–10 are
 all `[x]`; Task 11 (this finalization) wraps up the documentation.
 
 ### Final state
+
 - **Packaging**: `package.json` declares `type: "module"`,
   `keywords ⊇ ["pi-package"]`, `pi: { extensions: ["./extensions/laconic.ts"],
   skills: ["./skills"] }` (extension path confirmed honored at its current
   location — no `.pi/extensions/` move). `tsconfig.json` (nodenext, strict,
   noEmit) typechecks the extension against the real SDK.
-- **Tests**: extension/manifest/readme/stats-docs/laconic-crew-docs unit suites
+- **Tests**: extension/manifest/readme/laconic-crew-docs unit suites
   (`node --test`, strip-types) + a `pretest` typecheck gate; Python deterministic
   tests for the `laconic-compress` toolkit (`.venv/bin/pytest`).
 - **Docs**: root `README.md` (install via `pi -e` / package manifest, six modes,
@@ -338,11 +365,12 @@ all `[x]`; Task 11 (this finalization) wraps up the documentation.
 - **Git**: repo under git on branch `pi-laconic`.
 
 ### Key decisions (final)
-1. **Stats reconciled** (Task 6): no token meter exists — Pi does not expose
-   per-turn usage to the extension. `/laconic-stats` is an **on-demand,
-   model-driven estimate**; the statusline is a **`laconic:<mode>` mode
-   indicator** (not a savings badge). No hooks/session-log/`⛏` badge — all
-   phantom references removed.
+
+1. **Stats removed** (post-audit): `/laconic-stats` and the `laconic-stats`
+   skill were removed because token savings are counterfactual estimates, not
+   measured usage. Use Pi's footer or `/session` for real provider-reported
+   token usage. The statusline remains a **`laconic:<mode>` mode indicator**
+   (not a savings badge).
 2. **MCP `caveman-shrink` out of scope for v0.1.0** (Task 7): the Python
    `laconic-compress` toolkit (invoked via `/laconic-compress`) is the Pi
    equivalent. It is **itself Claude-bound** (`call_claude`), so "Pi-native"
@@ -360,12 +388,15 @@ all `[x]`; Task 11 (this finalization) wraps up the documentation.
    the session; no config file or env var".
 
 ### Final test counts (verified)
-- **JS**: `npm test` → **50 passing** (manifest 7 + extension 21 + readme 4 +
-  stats-docs 3 + laconic-crew-docs 15), preceded by the `pretest` typecheck.
+
+- **JS**: `npm test` → **85 passing** (current manifest + extension + readme +
+  laconic-crew-docs + related content suites), preceded by the `pretest`
+  typecheck.
 - **Python**: `.venv/bin/pytest skills/laconic-compress` → **58 passing**.
 - **Typecheck**: `npm run typecheck` (`tsc --noEmit`) exits **0** (clean).
 
 ### Pi-specific patterns worth recording (for future Pi packages)
+
 - **Manifest resource types**: Pi's `ResolvedPaths` understands exactly
   `extensions`, `skills`, `prompts`, `themes`. There is **no `agents` type** and
   no `pi.agents` field — Claude-Code-style subagent presets do not port to Pi
