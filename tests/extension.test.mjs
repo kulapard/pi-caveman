@@ -22,15 +22,15 @@ import laconicExtension from "../extensions/laconic.ts";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
 
-const ALL_MODES = ["lite", "full", "ultra"];
+const ALL_MODES = ["low", "medium", "high"];
 
 // --- normalizeMode mapping table ---
 
-test("normalizeMode: empty / whitespace -> full", async () => {
-	assert.equal(normalizeMode(undefined), "full");
-	assert.equal(normalizeMode(""), "full");
-	assert.equal(normalizeMode("   "), "full");
-	assert.equal(normalizeMode("\t\n"), "full");
+test("normalizeMode: empty / whitespace -> medium", async () => {
+	assert.equal(normalizeMode(undefined), "medium");
+	assert.equal(normalizeMode(""), "medium");
+	assert.equal(normalizeMode("   "), "medium");
+	assert.equal(normalizeMode("\t\n"), "medium");
 });
 
 test("normalizeMode: off-like aliases -> off", async () => {
@@ -56,7 +56,7 @@ test("normalizeMode: each valid mode maps to itself", async () => {
 });
 
 test("normalizeMode: garbage -> undefined", async () => {
-	for (const junk of ["banana", "lite-mode", "wenyan-mega", "123", "fullish"]) {
+	for (const junk of ["banana", "low-mode", "high-mega", "123", "mediumish"]) {
 		assert.equal(
 			normalizeMode(junk),
 			undefined,
@@ -76,9 +76,9 @@ test("VALID_MODES contains exactly the three intensity modes", async () => {
 
 test("modeInstructions: contains the active banner and per-mode line for every mode", async () => {
 	const perModeNeedle = {
-		lite: "Intensity: lite.",
-		full: "Intensity: full.",
-		ultra: "Intensity: ultra.",
+		low: "Intensity: low.",
+		medium: "Intensity: medium.",
+		high: "Intensity: high.",
 	};
 	for (const mode of ALL_MODES) {
 		const text = modeInstructions(mode);
@@ -223,37 +223,37 @@ test("before_agent_start: appends modeInstructions when a mode is active", async
 	laconicExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
 
-	// activate ultra via the /laconic command handler
+	// activate high via the /laconic command handler
 	const laconic = fake.commands.get("laconic");
-	await laconic.handler("ultra", ctx);
+	await laconic.handler("high", ctx);
 
 	const handler = fake.events.get("before_agent_start");
 	const result = handler({ systemPrompt: "SYS" });
 	assert.ok(result, "should return an override object when active");
 	assert.ok(result.systemPrompt.startsWith("SYS\n\n"));
 	assert.match(result.systemPrompt, /LACONIC MODE ACTIVE/);
-	assert.ok(result.systemPrompt.includes("Intensity: ultra."));
+	assert.ok(result.systemPrompt.includes("Intensity: high."));
 });
 
 test("session_start: restores the LAST laconic-mode entry from the branch", async () => {
 	const fake = makeFakePi();
 	laconicExtension(fake.pi);
 	const branch = [
-		{ type: "custom", customType: "laconic-mode", data: { mode: "lite" } },
+		{ type: "custom", customType: "laconic-mode", data: { mode: "low" } },
 		{ type: "message", customType: undefined, data: {} },
-		{ type: "custom", customType: "laconic-mode", data: { mode: "ultra" } },
-		{ type: "custom", customType: "other", data: { mode: "full" } },
+		{ type: "custom", customType: "laconic-mode", data: { mode: "high" } },
+		{ type: "custom", customType: "other", data: { mode: "medium" } },
 	];
 	const { ctx, statuses } = makeFakeCtx(branch);
 	const handler = fake.events.get("session_start");
 	handler({}, ctx);
 
-	// last laconic-mode entry was ultra -> before_agent_start should reflect ultra
+	// last laconic-mode entry was high -> before_agent_start should reflect high
 	const beforeStart = fake.events.get("before_agent_start");
 	const result = beforeStart({ systemPrompt: "SYS" });
-	assert.ok(result.systemPrompt.includes("Intensity: ultra."));
-	// statusline reflects ultra
-	assert.deepEqual(statuses.at(-1), { key: "laconic", value: "laconic:ultra" });
+	assert.ok(result.systemPrompt.includes("Intensity: high."));
+	// statusline reflects high
+	assert.deepEqual(statuses.at(-1), { key: "laconic", value: "laconic:high" });
 });
 
 test("session_start: resets to off when no laconic-mode entry exists", async () => {
@@ -277,11 +277,11 @@ test("/laconic: persists a valid mode and appends a session entry", async () => 
 	laconicExtension(fake.pi);
 	const { ctx, notifications } = makeFakeCtx();
 	const laconic = fake.commands.get("laconic");
-	await laconic.handler("ultra", ctx);
+	await laconic.handler("high", ctx);
 
 	assert.equal(fake.appended.length, 1);
 	assert.equal(fake.appended[0].customType, "laconic-mode");
-	assert.equal(fake.appended[0].data.mode, "ultra");
+	assert.equal(fake.appended[0].data.mode, "high");
 	assert.equal(notifications.at(-1).level, "info");
 });
 
@@ -442,24 +442,24 @@ test("getArgumentCompletions: filters mode list by prefix", async () => {
 	const fake = makeFakePi();
 	laconicExtension(fake.pi);
 	const laconic = fake.commands.get("laconic");
-	const items = laconic.getArgumentCompletions("ul");
+	const items = laconic.getArgumentCompletions("h");
 	assert.ok(Array.isArray(items));
 	assert.deepEqual(
 		items.map((i) => i.value),
-		["ultra"],
+		["high"],
 	);
 	// each item carries a matching label
 	for (const item of items) assert.equal(item.label, item.value);
 });
 
-test("getArgumentCompletions: empty prefix returns the full list", async () => {
+test("getArgumentCompletions: empty prefix returns the medium list", async () => {
 	const fake = makeFakePi();
 	laconicExtension(fake.pi);
 	const laconic = fake.commands.get("laconic");
 	const items = laconic.getArgumentCompletions("");
 	assert.equal(items.length, COMPLETION_VALUES.length); // 3 modes + off
 	assert.ok(items.some((i) => i.value === "off"));
-	assert.ok(items.some((i) => i.value === "ultra"));
+	assert.ok(items.some((i) => i.value === "high"));
 });
 
 test("getArgumentCompletions: no match returns null (not an empty array)", async () => {
@@ -476,8 +476,8 @@ test("statusline: clears (undefined) when /laconic off is issued", async () => {
 	laconicExtension(fake.pi);
 	const { ctx, statuses } = makeFakeCtx();
 	const laconic = fake.commands.get("laconic");
-	await laconic.handler("ultra", ctx);
-	assert.deepEqual(statuses.at(-1), { key: "laconic", value: "laconic:ultra" });
+	await laconic.handler("high", ctx);
+	assert.deepEqual(statuses.at(-1), { key: "laconic", value: "laconic:high" });
 
 	await laconic.handler("off", ctx);
 	assert.deepEqual(statuses.at(-1), { key: "laconic", value: undefined });
@@ -485,7 +485,7 @@ test("statusline: clears (undefined) when /laconic off is issued", async () => {
 
 // --- pi.on("input") activation / deactivation handler ---
 
-test("input handler: activation phrase from a user source persists full", async () => {
+test("input handler: activation phrase from a user source persists medium", async () => {
 	const fake = makeFakePi();
 	laconicExtension(fake.pi);
 	const { ctx } = makeFakeCtx();
@@ -498,7 +498,7 @@ test("input handler: activation phrase from a user source persists full", async 
 	);
 	assert.deepEqual(result, { action: "continue" });
 	assert.equal(fake.appended.length, 1);
-	assert.equal(fake.appended[0].data.mode, "full");
+	assert.equal(fake.appended[0].data.mode, "medium");
 });
 
 test("input handler: deactivation phrase persists off", async () => {
@@ -509,7 +509,7 @@ test("input handler: deactivation phrase persists off", async () => {
 
 	// First activate, then deactivate.
 	input({ text: "use laconic", source: "user" }, ctx);
-	assert.equal(fake.appended.at(-1).data.mode, "full");
+	assert.equal(fake.appended.at(-1).data.mode, "medium");
 
 	input({ text: "switch to normal mode now", source: "user" }, ctx);
 	assert.equal(fake.appended.at(-1).data.mode, "off");
@@ -536,18 +536,18 @@ test("input handler: activation while already in a non-off mode does not overwri
 	const laconic = fake.commands.get("laconic");
 	const input = fake.events.get("input");
 
-	// Already in ultra via the command.
-	await laconic.handler("ultra", ctx);
+	// Already in high via the command.
+	await laconic.handler("high", ctx);
 	assert.equal(fake.appended.length, 1);
-	assert.equal(fake.appended[0].data.mode, "ultra");
+	assert.equal(fake.appended[0].data.mode, "high");
 
-	// An activation phrase must NOT downgrade ultra to full.
+	// An activation phrase must NOT downgrade high to medium.
 	input({ text: "use laconic", source: "user" }, ctx);
 	assert.equal(fake.appended.length, 1, "must not persist a second entry");
 
 	const beforeStart = fake.events.get("before_agent_start");
 	const r = beforeStart({ systemPrompt: "SYS" });
-	assert.ok(r.systemPrompt.includes("Intensity: ultra."), "mode stays ultra");
+	assert.ok(r.systemPrompt.includes("Intensity: high."), "mode stays high");
 });
 
 test("input handler: deactivation while already off does not persist a redundant entry", async () => {
@@ -569,7 +569,7 @@ test("input handler: deactivation while already off does not persist a redundant
 
 test("session_start: falls back to project state when no laconic-mode entry exists", async () => {
 	const tmp = mkdtempSync(join(tmpdir(), "pi-laconic-"));
-	saveProjectMode(tmp, "ultra");
+	saveProjectMode(tmp, "high");
 	const fake = makeFakePi();
 	laconicExtension(fake.pi);
 	const { ctx, statuses } = makeFakeCtx([], tmp);
@@ -579,20 +579,20 @@ test("session_start: falls back to project state when no laconic-mode entry exis
 	const beforeStart = fake.events.get("before_agent_start");
 	const result = beforeStart({ systemPrompt: "SYS" });
 	assert.ok(
-		result.systemPrompt.includes("Intensity: ultra."),
+		result.systemPrompt.includes("Intensity: high."),
 		"mode should be restored from project state",
 	);
-	assert.deepEqual(statuses.at(-1), { key: "laconic", value: "laconic:ultra" });
+	assert.deepEqual(statuses.at(-1), { key: "laconic", value: "laconic:high" });
 	rmSync(tmp, { recursive: true, force: true });
 });
 
 test("session_start: session entry overrides project state", async () => {
 	const tmp = mkdtempSync(join(tmpdir(), "pi-laconic-"));
-	saveProjectMode(tmp, "ultra");
+	saveProjectMode(tmp, "high");
 	const fake = makeFakePi();
 	laconicExtension(fake.pi);
 	const branch = [
-		{ type: "custom", customType: "laconic-mode", data: { mode: "lite" } },
+		{ type: "custom", customType: "laconic-mode", data: { mode: "low" } },
 	];
 	const { ctx } = makeFakeCtx(branch, tmp);
 	const handler = fake.events.get("session_start");
@@ -601,7 +601,7 @@ test("session_start: session entry overrides project state", async () => {
 	const beforeStart = fake.events.get("before_agent_start");
 	const result = beforeStart({ systemPrompt: "SYS" });
 	assert.ok(
-		result.systemPrompt.includes("Intensity: lite."),
+		result.systemPrompt.includes("Intensity: low."),
 		"session entry must override project state",
 	);
 	rmSync(tmp, { recursive: true, force: true });

@@ -4,25 +4,25 @@
 // types it ever needs MUST be imported as `import type` so --experimental-strip-types
 // can erase them.
 
-export type LaconicMode = "lite" | "full" | "ultra";
+export type LaconicMode = "low" | "medium" | "high";
 
 export type StoredMode = LaconicMode | "off";
 
-export const VALID_MODES = new Set<LaconicMode>(["lite", "full", "ultra"]);
+export const VALID_MODES = new Set<LaconicMode>(["low", "medium", "high"]);
 
 // Values offered as argument completions for /laconic: the three real modes plus
 // `off`. These are what a user may type, which is a superset of VALID_MODES, so it
 // is kept as its own list rather than derived from VALID_MODES.
 export const COMPLETION_VALUES: readonly string[] = [
-	"lite",
-	"full",
-	"ultra",
+	"low",
+	"medium",
+	"high",
 	"off",
 ];
 
 export function normalizeMode(raw: string | undefined): StoredMode | undefined {
 	const value = (raw ?? "").trim().toLowerCase();
-	if (!value) return "full";
+	if (!value) return "medium";
 	if (
 		["off", "stop", "normal", "normal-mode", "disable", "disabled"].includes(
 			value,
@@ -55,10 +55,10 @@ Auto-clarity:
 - Resume terse style after clear part.`;
 
 	const perMode: Record<LaconicMode, string> = {
-		lite: "Intensity: lite. Remove filler/hedging. Keep articles and full professional sentences.",
-		full: "Intensity: full. Drop articles; fragments OK; short synonyms. Spartan terseness.",
-		ultra:
-			"Intensity: ultra. Bare fragments. Use arrows for causality. Abbreviate prose words only; never abbreviate real code symbols, function names, API names, or error strings.",
+		low: "Intensity: low. Remove filler/hedging. Keep articles and full professional sentences.",
+		medium:
+			"Intensity: medium. Drop articles, fragments OK, short synonyms. Spartan terseness.",
+		high: "Intensity: high. Bare fragments. Use arrows for causality. Abbreviate prose words only; never abbreviate real code symbols, function names, API names, or error strings.",
 	};
 
 	return `${base}\n\n${perMode[mode]}`;

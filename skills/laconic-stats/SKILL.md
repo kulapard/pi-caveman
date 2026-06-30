@@ -25,7 +25,7 @@ token counts or claim they were read from a log — that data is not available.
 
 - No on-disk usage log, no JSONL parsing, no automatic counters.
 - No statusline savings badge. The statusline shows the current mode only
-  (`laconic:<mode>`, e.g. `laconic:ultra`), set by the extension via
+  (`laconic:<mode>`, e.g. `laconic:high`), set by the extension via
   `ctx.ui.setStatus`. It is a mode indicator, not a savings percentage.
 - Verbatim guarantee still holds: code, commands, API names, file paths, and
   exact errors are never compressed when counting or reporting.

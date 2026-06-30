@@ -15,7 +15,7 @@ import { loadProjectMode, saveProjectMode } from "./laconic-state.ts";
 const HELP_TEXT = `# Laconic for Pi
 
 Commands:
-- /laconic [lite|full|ultra] — enable terse mode for this session.
+- /laconic [low|medium|high] — enable terse mode for this session.
 - /laconic off — disable terse mode.
 - /laconic-help — show this card.
 - /laconic-commit [notes] — generate Conventional Commit message. Does not commit.
@@ -60,7 +60,7 @@ export default function laconicExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("laconic", {
-		description: "Enable laconic terse mode: lite, full, ultra, or off",
+		description: "Enable laconic terse mode: low, medium, high, or off",
 		getArgumentCompletions: (prefix) => {
 			const normalizedPrefix = prefix.trim().toLowerCase();
 			const items = COMPLETION_VALUES.flatMap((value) =>
@@ -151,8 +151,8 @@ export default function laconicExtension(pi: ExtensionAPI) {
 					saveProjectMode(ctx.cwd, "off");
 				}
 			} else if (mode === "off" && ACTIVATION_RE.test(text)) {
-				persistMode("full", ctx);
-				saveProjectMode(ctx.cwd, "full");
+				persistMode("medium", ctx);
+				saveProjectMode(ctx.cwd, "medium");
 			}
 		}
 		return { action: "continue" as const };

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (BREAKING)
+
+- Renamed laconic intensity modes from `lite|full|ultra` to `low|medium|high`
+  for clearer, unambiguous level names. Default mode is now `medium`
+  (previously `full`).
+- Removed `wenyan-lite`, `wenyan-full`, and `wenyan-ultra` modes from the
+  laconic skill documentation; the extension never registered them.
+- Updated injected mode instructions, command completions, statusline text,
+  README, and skill docs to use `low|medium|high`.
+
+### Migration
+
+- Re-enable terse mode with `/laconic` (now `medium`) or `/laconic low|high`.
+- Any existing `.pi/laconic-mode.json` with old mode values (`lite`, `full`,
+  `ultra`) is treated as invalid and falls back to `off`. Re-enable with
+  `/laconic <mode>`.
+
 ## [0.9.0] - 2026-06-30
 
 Renamed the project from **pi-caveman** to **pi-laconic** (npm

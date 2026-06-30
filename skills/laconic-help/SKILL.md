@@ -14,9 +14,9 @@ Display this reference card when invoked. One-shot — do NOT change mode, write
 
 | Mode | Trigger | What change |
 |------|---------|-------------|
-| **Lite** | `/laconic lite` | Drop filler. Keep sentence structure. |
-| **Full** | `/laconic` | Drop articles, filler, pleasantries, hedging. Fragments OK. Default. |
-| **Ultra** | `/laconic ultra` | Extreme compression. Bare fragments. Abbreviate prose words; arrows (X → Y). |
+| **Low** | `/laconic low` | Drop filler. Keep sentence structure. |
+| **Medium** | `/laconic` | Drop articles, filler, pleasantries, hedging. Fragments OK. Default. |
+| **High** | `/laconic high` | Extreme compression. Bare fragments. Abbreviate prose words; arrows (X → Y). |
 
 Mode stick until changed or session end.
 
@@ -45,8 +45,8 @@ saved per project in `.pi/laconic-mode.json`; a new session in the same project
 directory restores the last mode. Session entry overrides project default. No
 config file? Falls back to `off`.
 
-`/laconic` (no argument) = `full`. Pick another with `/laconic ultra`,
-`/laconic lite`, etc. Say "stop laconic" or "normal mode" to turn off.
+`/laconic` (no argument) = `medium`. Pick another with `/laconic high`,
+`/laconic low`, etc. Say "stop laconic" or "normal mode" to turn off.
 
 ## More
 

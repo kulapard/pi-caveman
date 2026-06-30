@@ -8,7 +8,7 @@ A [Pi](https://github.com/earendil-works/pi-coding-agent) terse-output extension
 inspired by [caveman](https://github.com/JuliusBrussee/caveman). It makes the agent
 answer like a Spartan — compressed, laconic prose (drop articles, filler, and
 hedging; fragments over sentences) that cuts output tokens by roughly 65–75%
-**while keeping full technical accuracy**: code, commands, API names, file paths,
+**while keeping medium technical accuracy**: code, commands, API names, file paths,
 and exact error strings are always preserved verbatim.
 
 pi-laconic ships as a Pi package: a single extension (`extensions/laconic.ts`)
@@ -28,7 +28,7 @@ The textbook example: Philip II of Macedon warned Sparta, "If I invade Laconia,
 I will raze your city to the ground." The Spartans answered with a single word —
 **"If."** Philip never invaded.
 
-That is the whole idea. `pi-laconic` makes your agent answer like a Spartan: full
+That is the whole idea. `pi-laconic` makes your agent answer like a Spartan: medium
 meaning, no wasted words. Code, commands, and exact strings stay verbatim — only
 the fluff is cut.
 
@@ -84,21 +84,21 @@ One scenario, three intensities.
 <tr>
 <td width="33%" valign="top">
 
-### `/laconic lite`
+### `/laconic low`
 
 You assigned a value to a variable inside a function after referencing it. In Python, any assignment in a function makes the variable local to that scope. To modify a variable from the outer scope, declare it with `nonlocal` or `global`, or pass it as an argument.
 
 </td>
 <td width="33%" valign="top">
 
-### `/laconic full`
+### `/laconic medium`
 
 Assignment inside function makes variable local. `UnboundLocalError` means outer var referenced before assignment. Use `nonlocal` for enclosing scope, `global` for module scope.
 
 </td>
 <td width="33%" valign="top">
 
-### `/laconic ultra`
+### `/laconic high`
 
 Inner assignment → local var. `UnboundLocalError` = outer ref before local assignment. Use `nonlocal`/`global`.
 
@@ -167,18 +167,18 @@ npm test               # typecheck + extension/manifest/docs unit tests
 ## Quick start
 
 After installing, type `/laconic` in any Pi session. The statusline shows
-`laconic:full`. Say "normal mode" or run `/laconic off` to turn it off.
+`laconic:medium`. Say "normal mode" or run `/laconic off` to turn it off.
 
 ## Modes
 
-Three intensity modes (default **full**). A mode sticks until you change it or the
+Three intensity modes (default **medium**). A mode sticks until you change it or the
 session ends.
 
 | Mode | Command | Effect |
 |------|---------|--------|
-| **lite** | `/laconic lite` | Drop filler. Keep sentence structure. |
-| **full** | `/laconic` | Drop articles, filler, pleasantries, hedging. Fragments OK. Default. |
-| **ultra** | `/laconic ultra` | Extreme compression. Bare fragments. Abbreviate prose words; arrows (X → Y). |
+| **low** | `/laconic low` | Drop filler. Keep sentence structure. |
+| **medium** | `/laconic` | Drop articles, filler, pleasantries, hedging. Fragments OK. Default. |
+| **high** | `/laconic high` | Extreme compression. Bare fragments. Abbreviate prose words; arrows (X → Y). |
 
 `/laconic off` disables terse mode.
 
@@ -214,7 +214,7 @@ switches mode on phrases like:
 
 - **Activate:** "laconic mode", "talk like a Spartan", "be laconic", "use
   laconic", "less tokens", "fewer tokens", "save tokens", "be brief" → enables
-  **full** mode.
+  **medium** mode.
 - **Deactivate:** "stop laconic", "normal mode", "disable laconic" → turns it
   off.
 
@@ -229,7 +229,7 @@ file falls back to `off`.
 ## Statusline indicator
 
 When a UI is attached, the statusline shows the active mode as
-`laconic:<mode>` (for example `laconic:ultra`). When laconic is off the indicator is cleared.
+`laconic:<mode>` (for example `laconic:high`). When laconic is off the indicator is cleared.
 
 ## Compression vs. upstream MCP shrink
 

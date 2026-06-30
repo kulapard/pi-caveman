@@ -24,10 +24,9 @@ Also triggers on "laconic help", "what laconic commands", "how do I use laconic"
 
 ```
 Modes:
-  /laconic              full (default)
-  /laconic lite         lighter
-  /laconic ultra        extreme
-  /laconic wenyan       classical Chinese
+  /laconic              medium (default)
+  /laconic low          lighter
+  /laconic high         extreme
 
 Skills:
   /laconic-commit       terse Conventional Commits
